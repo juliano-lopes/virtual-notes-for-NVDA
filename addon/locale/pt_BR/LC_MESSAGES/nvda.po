@@ -1,0 +1,91 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the virtualNotesForNVDA package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: virtualNotesForNVDA 1.1.0\n"
+"Report-Msgid-Bugs-To: nvda-translations@groups.io\n"
+"POT-Creation-Date: 2024-05-03 02:37-0300\n"
+"PO-Revision-Date: 2024-05-03 03:08-0300\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 2.0.7\n"
+"Last-Translator: \n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+"Language: pt_BR\n"
+
+#. Translators: this message is shown when no text is selected
+#: addon/globalPlugins/virtualNotesForNVDA/__init__.py:47
+#: addon/globalPlugins/virtualNotesForNVDA/__init__.py:104
+msgid "No text selected"
+msgstr "Nenhum texto selecionado"
+
+#. Add-on summary, usually the user visible name of the addon.
+#. Translators: Summary for this add-on to be shown on installation and add-on information.
+#: buildVars.py:17
+msgid "Virtual Notes For NVDA (creates virtual notes to be read by NVDA)"
+msgstr ""
+"Notas Virtuais para o NVDA (crie notas virtuais para serem lidas pelo NVDA)"
+
+#. Add-on description
+#. Translators: Long description to be shown for this add-on on add-on information from add-ons manager
+#: buildVars.py:20
+msgid ""
+"\n"
+"This add-on (Virtual Notes for NVDA) creates virtual notes that can be read "
+"by NVDA screen reader. Here are the available steps:  \n"
+"* Select text;  \n"
+"* Use shortcuts (all starting with the keys \"NVDA + Alt\").  \n"
+"By pressing these keys combined with specific letters, you can perform the "
+"following actions:\n"
+"* A: Add a new temporary note to memory;  \n"
+"* J: Go to the previous note;  \n"
+"* L: Go to the next note;  \n"
+"* U: Read out the current note;  \n"
+"* S: Replace the note in the current position (you need to select some text "
+"first);  \n"
+"* D: Delete the note in the current position.  \n"
+"If the current note contains multiple lines (like text copied from a text "
+"editor), use these additional letters:  \n"
+"* I: Move to the previous line of the current note;  \n"
+"* K: Move to the next line of the current note;  \n"
+"* O: read out the current line of the current note.  \n"
+"Note: The key positions mimic the arrow keys (I = up, L = right, K = down, "
+"and J = left).  \n"
+"After using a shortcut, a specific sound will play to indicate the action "
+"performed.\n"
+"\n"
+msgstr ""
+"\n"
+"Este complemento (Virtual Notes for NVDA) cria notas virtuais que podem ser "
+"lidas pelo leitor de telas NVDA. Aqui estão as etapas disponíveis:  \n"
+"* Selecione algum  texto;  \n"
+"* Use atalhos (todos começando com as teclas “NVDA + Alt”).  \n"
+"Ao pressionar essas teclas combinadas com letras específicas, você pode "
+"realizar as seguintes ações:\n"
+"* A: Adicione uma nova nota temporária à memória;  \n"
+"* J: Vai para a nota anterior;  \n"
+"* L: Vai para a próxima nota;  \n"
+"* U: Anuncia a nota atual;  \n"
+"* S: Substitui a nota na posição atual (você precisa selecionar algum texto "
+"primeiro);  \n"
+"* D: Exclui a nota na posição atual.  \n"
+"Se a nota atual contiver várias linhas (como texto copiado de um editor de "
+"texto), use estas letras adicionais:  \n"
+"* I: Move para a linha anterior da nota atual;  \n"
+"* K: Move para a próxima linha da nota atual;  \n"
+"* O: Anuncia a linha atual da nota atual.  \n"
+"Observação: As posições das teclas são similares às setas do teclado (I = "
+"para cima, L = direita, K = para baixo e J = esquerda).  \n"
+"Após usar um atalho, um som específico será reproduzido para indicar a ação "
+"realizada.\n"
+"\n"
+
+#. Author(s)
+#: buildVars.py:42
+msgid "Juliano Lopes"
+msgstr "Juliano Lopes"
