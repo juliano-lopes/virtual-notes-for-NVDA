@@ -1,7 +1,7 @@
-# Add-on development first example
+# Add-on virtualNotesForNVDA
 import addonHandler
 
-import tones # We want to hear beeps.
+import tones
 
 import api
 import globalPluginHandler
@@ -26,6 +26,7 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
     index = 0
     line = 0
     def script_save_note_to_memory(self, gesture):
+        self.line = 0
         focus = api.getFocusObject()
         textInfo = None
         if focus.treeInterceptor is not None:
@@ -44,6 +45,7 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
             else:
                 # Translators: this message is shown when no text is selected
                 ui.message(_("No text selected"))
+
     def script_next_note(self, gesture):
         self.line = 0
         if self.index < (len(self.memory) - 1):
@@ -51,22 +53,40 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
             ui.message(f"{self.index+1} {self.memory[self.index]}")
         else:
             tones.beep(280, 100)  # Beep a standard middle A for 1 second.
-            ui.message(f"{self.index+1} {self.memory[self.index]}")
+            if len(self.memory) > 0:
+                ui.message(f"{self.index+1} {self.memory[self.index]}")
+
     def script_previous_note(self, gesture):
         self.line = 0
         if self.index >= 1:
             self.index-=1
-            ui.message(f"{self.index+1} {self.memory[self.index]}")
+            if len(self.memory) > 0:
+                ui.message(f"{self.index+1} {self.memory[self.index]}")
         else:
             tones.beep(280, 100)
-            ui.message(f"{self.index+1} {self.memory[self.index]}")
+            if len(self.memory) > 0:
+                ui.message(f"{self.index+1} {self.memory[self.index]}")
+
     def script_current_note(self, gesture):
         if len(self.memory) > 0:
             ui.message(f"{self.index+1} {self.memory[self.index]}")
         else:
             tones.beep(280, 100)
 
+    def script_delete_note(self, gesture):
+        self.line = 0
+        if len(self.memory) > 0:
+            self.memory.pop(self.index)
+            if self.index > 0 and self.index == len(self.memory):
+                self.index -= 1
+            tones.beep(580, 220)
+            if len(self.memory) > 0:
+                ui.message(f"{self.index+1} {self.memory[self.index]}")
+        else:
+            tones.beep(180, 220)
+
     def script_replace_note(self, gesture):
+        self.line = 0
         focus = api.getFocusObject()
         textInfo = None
         if focus.treeInterceptor is not None:
@@ -82,36 +102,49 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
             else:
                 # Translators: this message is shown when no text is selected
                 ui.message(_("No text selected"))
+
     def script_next_note_line(self, gesture):
-        t = self.memory[self.index].split("\n")
-        if len(t) > 0 and self.line < (len(t) - 1):
-            self.line+=1
-            ui.message(f"{self.index + 1}.{self.line + 1} {t[self.line]}")
+        if len(self.memory) > 0:
+            lines = self.memory[self.index].split("\n")
+            if len(lines) > 0 and self.line < (len(lines) - 1):
+                self.line+=1
+                ui.message(f"{self.index + 1}.{self.line + 1} {lines[self.line]}")
+            else:
+                tones.beep(280, 100)
+                ui.message(f"{self.index + 1}.{self.line + 1} {lines[self.line]}")
         else:
             tones.beep(280, 100)
-            ui.message(f"{self.index + 1}.{self.line + 1} {t[self.line]}")
-            
+
     def script_previous_note_line(self, gesture):
-        t = self.memory[self.index].split("\n")
-        if len(t) > 0 and self.line >= 1:
-            self.line-=1
-            ui.message(f"{self.index + 1}.{self.line + 1} {t[self.line]}")
+        if len(self.memory) > 0:
+            lines = self.memory[self.index].split("\n")
+            if len(lines) > 0 and self.line >= 1:
+                self.line-=1
+                ui.message(f"{self.index + 1}.{self.line + 1} {lines[self.line]}")
+            else:
+                tones.beep(280, 100)
+                ui.message(f"{self.index + 1}.{self.line + 1} {lines[self.line]}")
         else:
             tones.beep(280, 100)
-            ui.message(f"{self.index + 1}.{self.line + 1} {t[self.line]}")
 
     def script_current_note_line(self, gesture):
-        t = self.memory[self.index].split("\n")
-        if len(t) > 0:
-            ui.message(f"{self.index + 1}.{self.line + 1} {t[self.line]}")
+        if len(self.memory) > 0:
+            lines = self.memory[self.index].split("\n")
+            if len(lines) > 0:
+                ui.message(f"{self.index + 1}.{self.line + 1} {lines[self.line]}")
+            else:
+                tones.beep(280, 100)
+        else:
+            tones.beep(280, 100)
 
     __gestures={
-        "kb:NVDA+CONTROL+SHIFT+A": "save_note_to_memory",
-        "kb:NVDA+CONTROL+SHIFT+K":"next_note",
-        "kb:NVDA+CONTROL+SHIFT+J":"previous_note",
-        "kb:NVDA+CONTROL+SHIFT+L":"current_note",
-        "kb:NVDA+CONTROL+SHIFT+M":"replace_note",
-        "kb:NVDA+CONTROL+SHIFT+O":"next_note_line",
-        "kb:NVDA+CONTROL+SHIFT+U":"previous_note_line",
-        "kb:NVDA+CONTROL+SHIFT+P":"current_note_line",
+        "kb:NVDA+ALT+A": "save_note_to_memory",
+        "kb:NVDA+ALT+L":"next_note",
+        "kb:NVDA+ALT+J":"previous_note",
+        "kb:NVDA+ALT+U":"current_note",
+        "kb:NVDA+ALT+S":"replace_note",
+        "kb:NVDA+ALT+D":"delete_note",
+        "kb:NVDA+ALT+K":"next_note_line",
+        "kb:NVDA+ALT+I":"previous_note_line",
+        "kb:NVDA+ALT+O":"current_note_line",
     }
