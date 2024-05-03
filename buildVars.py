@@ -18,23 +18,26 @@ addon_info = {
         # Add-on description
         # Translators: Long description to be shown for this add-on on add-on information from add-ons manager
         "addon_description" : _("""
-This Addon (Virtual Notes For NVDA
-) creates virtual notes to be read by NVDA. The following steps are available:
-* Select a text;  
-* Use shortcuts (they all start with the keys "NVDA + Control + Shift).  
-So, by pressing these keys, you can press the following letters further:  
-* A to add a new temporary note to memory;  
-* J for previous note;  
-* K for next note;  
-* L for current note;  
-* M to replace note in current position.  
-If the current note has more than one line (text copied from a text editor) use the following letters:  
-* U for previous line of current note;  
-* O for next line of current note;  
-* P for current line of current note.  
+This add-on (Virtual Notes for NVDA) creates virtual notes that can be read by NVDA screen reader. Here are the available steps:  
+* Select text;  
+* Use shortcuts (all starting with the keys "NVDA + Alt").  
+By pressing these keys combined with specific letters, you can perform the following actions:
+* A: Add a new temporary note to memory;  
+* J: Go to the previous note;  
+* L: Go to the next note;  
+* U: Read out the current note;  
+* S: Replace the note in the current position (you need to select some text first);  
+* D: Delete the note in the current position.  
+If the current note contains multiple lines (like text copied from a text editor), use these additional letters:  
+* I: Move to the previous line of the current note;  
+* K: Move to the next line of the current note;  
+* O: read out the current line of the current note.  
+Note: The key positions mimic the arrow keys (I = up, L = right, K = down, and J = left).  
+After using a shortcut, a specific sound will play to indicate the action performed.
+
 """),
         # version
-        "addon_version" : "1.0.0",
+        "addon_version" : "1.1.0",
         # Author(s)
         "addon_author" : _("Juliano Lopes"),
         # URL for the add-on documentation support
