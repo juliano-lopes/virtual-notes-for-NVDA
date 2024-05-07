@@ -105,7 +105,7 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 
     def script_next_note_line(self, gesture):
         if len(self.memory) > 0:
-            lines = self.memory[self.index].split("\n")
+            lines = self.memory[self.index].split("\r")
             if len(lines) > 0 and self.line < (len(lines) - 1):
                 self.line+=1
                 ui.message(f"{self.index + 1}.{self.line + 1} {lines[self.line]}")
@@ -117,7 +117,7 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 
     def script_previous_note_line(self, gesture):
         if len(self.memory) > 0:
-            lines = self.memory[self.index].split("\n")
+            lines = self.memory[self.index].split("\r")
             if len(lines) > 0 and self.line >= 1:
                 self.line-=1
                 ui.message(f"{self.index + 1}.{self.line + 1} {lines[self.line]}")
@@ -129,7 +129,7 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 
     def script_current_note_line(self, gesture):
         if len(self.memory) > 0:
-            lines = self.memory[self.index].split("\n")
+            lines = self.memory[self.index].split("\r")
             if len(lines) > 0:
                 ui.message(f"{self.index + 1}.{self.line + 1} {lines[self.line]}")
             else:
