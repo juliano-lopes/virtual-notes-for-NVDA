@@ -9,6 +9,7 @@ import keyboardHandler
 import textInfos
 import ui
 from scriptHandler import getLastScriptRepeatCount
+from scriptHandler import script
 import config
 import json
 import os
@@ -21,10 +22,17 @@ try:
 except ImportError:
     from controlTypes import ROLE_EDITABLETEXT, ROLE_DOCUMENT
 
+_ = lambda x : x
+
 class GlobalPlugin(globalPluginHandler.GlobalPlugin):
+    scriptCategory = _("Virtual Notes For NVDA")
     memory = []
     index = 0
     line = 0
+    
+    @script(
+        description=_("Add a new temporary note to memory")
+    )
     def script_save_note_to_memory(self, gesture):
         self.line = 0
         focus = api.getFocusObject()
@@ -46,6 +54,9 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
                 # Translators: this message is shown when no text is selected
                 ui.message(_("No text selected"))
 
+    @script(
+        description=_("Go to the next note")
+    )
     def script_next_note(self, gesture):
         self.line = 0
         if self.index < (len(self.memory) - 1):
@@ -56,6 +67,9 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
             if len(self.memory) > 0:
                 ui.message(f"{self.index+1} {self.memory[self.index]}")
 
+    @script(
+        description=_("Go to the previous note")
+    )
     def script_previous_note(self, gesture):
         self.line = 0
         if self.index >= 1:
@@ -67,12 +81,18 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
             if len(self.memory) > 0:
                 ui.message(f"{self.index+1} {self.memory[self.index]}")
 
+    @script(
+        description=_("Anounce the current note")
+    )
     def script_current_note(self, gesture):
         if len(self.memory) > 0:
             ui.message(f"{self.index+1} {self.memory[self.index]}")
         else:
             tones.beep(280, 100)
 
+    @script(
+        description=_("Delete the note in the current position")
+    )
     def script_delete_note(self, gesture):
         self.line = 0
         if len(self.memory) > 0:
@@ -85,6 +105,9 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
         else:
             tones.beep(180, 220)
 
+    @script(
+        description=_("Replace the note in the current position (you need to select some text first)")
+    )
     def script_replace_note(self, gesture):
         self.line = 0
         focus = api.getFocusObject()
@@ -103,6 +126,9 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
                 # Translators: this message is shown when no text is selected
                 ui.message(_("No text selected"))
 
+    @script(
+        description=_("Move to the next line of the current note")
+    )
     def script_next_note_line(self, gesture):
         if len(self.memory) > 0:
             lines = self.memory[self.index].split("\r")
@@ -115,6 +141,9 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
         else:
             tones.beep(280, 100)
 
+    @script(
+        description=_("Move to the previous line of the current note")
+    )
     def script_previous_note_line(self, gesture):
         if len(self.memory) > 0:
             lines = self.memory[self.index].split("\r")
@@ -127,6 +156,9 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
         else:
             tones.beep(280, 100)
 
+    @script(
+        description=_("Anounce the current line of the current note")
+    )
     def script_current_note_line(self, gesture):
         if len(self.memory) > 0:
             lines = self.memory[self.index].split("\r")
