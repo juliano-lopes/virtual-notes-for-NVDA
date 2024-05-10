@@ -5,10 +5,10 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: virtualNotesForNVDA 1.1.0\n"
+"Project-Id-Version: virtualNotesForNVDA 1.1.3\n"
 "Report-Msgid-Bugs-To: nvda-translations@groups.io\n"
-"POT-Creation-Date: 2024-05-03 02:37-0300\n"
-"PO-Revision-Date: 2024-05-03 03:08-0300\n"
+"POT-Creation-Date: 2024-05-10 17:59-0300\n"
+"PO-Revision-Date: 2024-05-10 18:18-0300\n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -18,18 +18,61 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 "Language: pt_BR\n"
 
+#: addon/globalPlugins/virtualNotesForNVDA/__init__.py:29
+msgid "Virtual Notes For NVDA"
+msgstr "Notas virtuais para o NVDA"
+
+#: addon/globalPlugins/virtualNotesForNVDA/__init__.py:35
+msgid "Add a new temporary note to memory"
+msgstr "Adicionar uma nova nota temporária à memória"
+
 #. Translators: this message is shown when no text is selected
-#: addon/globalPlugins/virtualNotesForNVDA/__init__.py:47
-#: addon/globalPlugins/virtualNotesForNVDA/__init__.py:104
+#: addon/globalPlugins/virtualNotesForNVDA/__init__.py:56
+#: addon/globalPlugins/virtualNotesForNVDA/__init__.py:128
 msgid "No text selected"
 msgstr "Nenhum texto selecionado"
+
+#: addon/globalPlugins/virtualNotesForNVDA/__init__.py:59
+msgid "Go to the next note"
+msgstr "Ir para a próxima nota"
+
+#: addon/globalPlugins/virtualNotesForNVDA/__init__.py:72
+msgid "Go to the previous note"
+msgstr "Ir para a nota anterior"
+
+#: addon/globalPlugins/virtualNotesForNVDA/__init__.py:86
+msgid "Anounce the current note"
+msgstr "Anunciar a nota atual"
+
+#: addon/globalPlugins/virtualNotesForNVDA/__init__.py:95
+msgid "Delete the note in the current position"
+msgstr "Excluir a nota na posição atual"
+
+#: addon/globalPlugins/virtualNotesForNVDA/__init__.py:110
+msgid ""
+"Replace the note in the current position (you need to select some text first)"
+msgstr ""
+"Substituir a nota na posição atual (você precisa selecionar algum texto "
+"primeiro)"
+
+#: addon/globalPlugins/virtualNotesForNVDA/__init__.py:131
+msgid "Move to the next line of the current note"
+msgstr "Mover para a próxima linha da nota atual"
+
+#: addon/globalPlugins/virtualNotesForNVDA/__init__.py:146
+msgid "Move to the previous line of the current note"
+msgstr "Mover para a linha anterior da nota atual"
+
+#: addon/globalPlugins/virtualNotesForNVDA/__init__.py:161
+msgid "Anounce the current line of the current note"
+msgstr "Anunciar a linha atual da nota atual"
 
 #. Add-on summary, usually the user visible name of the addon.
 #. Translators: Summary for this add-on to be shown on installation and add-on information.
 #: buildVars.py:17
 msgid "Virtual Notes For NVDA (creates virtual notes to be read by NVDA)"
 msgstr ""
-"Notas Virtuais para o NVDA (crie notas virtuais para serem lidas pelo NVDA)"
+"Notas Virtuais para o NVDA (cria notas virtuais para serem lidas pelo NVDA)"
 
 #. Add-on description
 #. Translators: Long description to be shown for this add-on on add-on information from add-ons manager
@@ -39,21 +82,19 @@ msgid ""
 "This add-on (Virtual Notes for NVDA) creates virtual notes that can be read "
 "by NVDA screen reader. Here are the available steps:  \n"
 "* Select text;  \n"
-"* Use shortcuts (all starting with the keys \"NVDA + Alt\").  \n"
-"By pressing these keys combined with specific letters, you can perform the "
-"following actions:\n"
-"* A: Add a new temporary note to memory;  \n"
-"* J: Go to the previous note;  \n"
-"* L: Go to the next note;  \n"
-"* U: Read out the current note;  \n"
-"* S: Replace the note in the current position (you need to select some text "
-"first);  \n"
-"* D: Delete the note in the current position.  \n"
+"* Use shortcuts to perform the following actions:\n"
+"* NVDA + Alt + A: Add a new temporary note to memory;  \n"
+"* NVDA + Alt + J: Go to the previous note;  \n"
+"* NVDA + Alt + L: Go to the next note;  \n"
+"* NVDA + Alt + U: Read out the current note;  \n"
+"* NVDA + Alt + S: Replace the note in the current position (you need to "
+"select some text first);  \n"
+"* NVDA + Alt + D: Delete the note in the current position.  \n"
 "If the current note contains multiple lines (like text copied from a text "
-"editor), use these additional letters:  \n"
-"* I: Move to the previous line of the current note;  \n"
-"* K: Move to the next line of the current note;  \n"
-"* O: read out the current line of the current note.  \n"
+"editor), you can use these shortcuts:  \n"
+"* NVDA + Alt + I: Move to the previous line of the current note;  \n"
+"* NVDA + Alt + K: Move to the next line of the current note;  \n"
+"* NVDA + Alt + O: read out the current line of the current note.  \n"
 "Note: The key positions mimic the arrow keys (I = up, L = right, K = down, "
 "and J = left).  \n"
 "After using a shortcut, a specific sound will play to indicate the action "
@@ -61,31 +102,31 @@ msgid ""
 "\n"
 msgstr ""
 "\n"
-"Este complemento (Virtual Notes for NVDA) cria notas virtuais que podem ser "
-"lidas pelo leitor de telas NVDA. Aqui estão as etapas disponíveis:  \n"
-"* Selecione algum  texto;  \n"
-"* Use atalhos (todos começando com as teclas “NVDA + Alt”).  \n"
-"Ao pressionar essas teclas combinadas com letras específicas, você pode "
-"realizar as seguintes ações:\n"
-"* A: Adicione uma nova nota temporária à memória;  \n"
-"* J: Vai para a nota anterior;  \n"
-"* L: Vai para a próxima nota;  \n"
-"* U: Anuncia a nota atual;  \n"
-"* S: Substitui a nota na posição atual (você precisa selecionar algum texto "
-"primeiro);  \n"
-"* D: Exclui a nota na posição atual.  \n"
+"\vEste complemento, Notas Virtuais para o NVDA (Virtual Notes for NVDA) "
+"adiciona textos à memória do computador que você pode utilizá-los como notas "
+"virtuais para serem lidas pelo leitor de telas NVDA. Aqui estão as etapas "
+"disponíveis:  \n"
+"* Selecionar algum texto;  \n"
+"* Use os seguintes atalhos: \n"
+"* NVDA + Alt + a: Adicionar o texto selecionado como uma nova nota "
+"temporária à memória;  \n"
+"* NVDA + Alt + J: ir para a nota anterior; \n"
+"*NVDA + Alt + L: ir para a próxima nota;  \n"
+"* NVDA + Alt + U: anunciar a nota atual;  \n"
+"* NVDA + Alt + S: Substituir a nota na posição atual (é preciso selecionar "
+"algum texto primeiro); \n"
+"* NVDA + Alt + D: Excluir a nota da posição atual.  \n"
 "Se a nota atual contiver várias linhas (como texto copiado de um editor de "
-"texto), use estas letras adicionais:  \n"
-"* I: Move para a linha anterior da nota atual;  \n"
-"* K: Move para a próxima linha da nota atual;  \n"
-"* O: Anuncia a linha atual da nota atual.  \n"
-"Observação: As posições das teclas são similares às setas do teclado (I = "
-"para cima, L = direita, K = para baixo e J = esquerda).  \n"
-"Após usar um atalho, um som específico será reproduzido para indicar a ação "
-"realizada.\n"
-"\n"
+"texto), use os seguintes atalhos: \n"
+"* NVDA + Alt + I: Mover para a linha anterior da nota atual;  \n"
+"* NVDA + Alt + K: Mover para a próxima linha da nota atual;  \n"
+"* NVDA + Alt + O: Anunciar a linha atual da nota atual.  \n"
+"Nota: As posições das teclas são similares as setas do teclado (I = para "
+"cima, L = para a direita, K = para baixo e J = para a esquerda).  \n"
+"Depois de usar um atalho, um som específico será reproduzido para indicar a "
+"ação realizada.  \n"
 
 #. Author(s)
-#: buildVars.py:42
+#: buildVars.py:41
 msgid "Juliano Lopes"
-msgstr "Juliano Lopes"
+msgstr ""
