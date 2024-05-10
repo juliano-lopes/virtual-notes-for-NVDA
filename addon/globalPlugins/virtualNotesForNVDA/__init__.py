@@ -170,6 +170,33 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
         else:
             tones.beep(280, 100)
 
+    @script(
+        description=_("Paste the current note to the current application")
+    )
+    def script_paste_note(self, gesture):
+        if len(self.memory) > 0:
+            api.copyToClip(self.memory[self.index])
+            keyboardHandler.KeyboardInputGesture.fromName("CONTROL+V").send()
+            tones.beep(1080, 200)
+            ui.message(f"{self.index+1} {self.memory[self.index]}")
+        else:
+            tones.beep(180, 220)
+    @script(
+        description=_("Paste the current line in the note to the current application")
+    )
+    def script_paste_note_line(self, gesture):
+        if len(self.memory) > 0:
+            lines = self.memory[self.index].split("\r")
+            if len(lines) > 0:
+                api.copyToClip(lines[self.line])
+                keyboardHandler.KeyboardInputGesture.fromName("CONTROL+V").send()
+                tones.beep(1080, 200)
+                ui.message(f"{self.index + 1}.{self.line + 1} {lines[self.line]}")
+            else:
+                tones.beep(180, 220)
+        else:
+            tones.beep(180, 220)
+
     __gestures={
         "kb:NVDA+ALT+A": "save_note_to_memory",
         "kb:NVDA+ALT+L":"next_note",
@@ -180,4 +207,6 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
         "kb:NVDA+ALT+K":"next_note_line",
         "kb:NVDA+ALT+I":"previous_note_line",
         "kb:NVDA+ALT+O":"current_note_line",
+        "kb:NVDA+CONTROL+SHIFT+U":"paste_note",
+        "kb:NVDA+CONTROL+SHIFT+O":"paste_note_line"
     }
