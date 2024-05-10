@@ -22,7 +22,8 @@ try:
 except ImportError:
     from controlTypes import ROLE_EDITABLETEXT, ROLE_DOCUMENT
 
-_ = lambda x : x
+#_ = lambda x : x
+addonHandler.initTranslation()
 
 class GlobalPlugin(globalPluginHandler.GlobalPlugin):
     scriptCategory = _("Virtual Notes For NVDA")
