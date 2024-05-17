@@ -176,7 +176,7 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
     def script_paste_note(self, gesture):
         if len(self.memory) > 0:
             api.copyToClip(self.memory[self.index])
-            keyboardHandler.KeyboardInputGesture.fromName("CONTROL+V").send()
+            self.paste_data()
             tones.beep(1080, 200)
             ui.message(f"{self.index+1} {self.memory[self.index]}")
         else:
@@ -189,13 +189,20 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
             lines = self.memory[self.index].split("\r")
             if len(lines) > 0:
                 api.copyToClip(lines[self.line])
-                keyboardHandler.KeyboardInputGesture.fromName("CONTROL+V").send()
+                self.paste_data()
                 tones.beep(1080, 200)
                 ui.message(f"{self.index + 1}.{self.line + 1} {lines[self.line]}")
             else:
                 tones.beep(180, 220)
         else:
             tones.beep(180, 220)
+
+    def paste_data(self):
+        focus = api.getFocusObject()
+        if focus.appModule.appName == "winword":
+            focus.WinwordSelectionObject.Paste()
+        else:
+            keyboardHandler.KeyboardInputGesture.fromName("CONTROL+V").send()
 
     __gestures={
         "kb:NVDA+ALT+A": "save_note_to_memory",
