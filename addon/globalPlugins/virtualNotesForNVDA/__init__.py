@@ -13,6 +13,7 @@ from scriptHandler import script
 import config
 import json
 import os
+import globalVars
 
 # Fix compatibility with the new role constants introduced in NVDA 2022.1."""
 try:
@@ -25,11 +26,35 @@ except ImportError:
 #_ = lambda x : x
 addonHandler.initTranslation()
 
+def get_notes_file_path():
+    return os.path.join(globalVars.appArgs.configPath, "virtualNotesData.json")
+
+def save_notes_to_disk(memory_list):
+    try:
+        file_path = get_notes_file_path()
+        with open(file_path, "w", encoding="utf-8") as f:
+            json.dump(memory_list, f, ensure_ascii=False, indent=4)
+    except Exception:
+        pass
+
+def load_notes_from_disk():
+    file_path = get_notes_file_path()
+    if os.path.exists(file_path):
+        try:
+            with open(file_path, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception:
+            pass
+    return []
+
 class GlobalPlugin(globalPluginHandler.GlobalPlugin):
     scriptCategory = _("Virtual Notes For NVDA")
-    memory = []
-    index = 0
-    line = 0
+    
+    def __init__(self):
+        super(GlobalPlugin, self).__init__()
+        self.memory = load_notes_from_disk()
+        self.index = len(self.memory) - 1 if len(self.memory) > 0 else 0
+        self.line = 0
     
     @script(
         description=_("Add a new temporary note to memory")
@@ -48,6 +73,7 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
                 #keyCode = str(gesture.vkCode) # Get which number the user pressed.
                 self.memory.append(text)
                 self.index = len(self.memory) - 1
+                save_notes_to_disk(self.memory)
                 
                 tones.beep(880, 100)  # Beep a standard middle A for 1 second.
                 ui.message(f"{self.index+1} {self.memory[self.index]}")
@@ -100,6 +126,7 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
             self.memory.pop(self.index)
             if self.index > 0 and self.index == len(self.memory):
                 self.index -= 1
+            save_notes_to_disk(self.memory)
             tones.beep(580, 220)
             if len(self.memory) > 0:
                 ui.message(f"{self.index+1} {self.memory[self.index]}")
@@ -121,6 +148,7 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
             text = textInfo.text
             if len(text) > 0:
                 self.memory[self.index] = text
+                save_notes_to_disk(self.memory)
                 tones.beep(580, 220)
                 ui.message(f"{self.index+1} {self.memory[self.index]}")
             else:

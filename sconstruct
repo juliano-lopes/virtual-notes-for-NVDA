@@ -177,9 +177,7 @@ langDirs = [f for f in env.Glob(os.path.join("addon", "locale", "*"))]
 
 #Allow all NVDA's gettext po files to be compiled in source/locale, and manifest files to be generated
 for dir in langDirs:
-	poFile = dir.File(os.path.join("LC_MESSAGES", "nvda.po"))
-	moFile=env.gettextMoFile(poFile)
-	env.Depends(moFile, poFile)
+	moFile = dir.File(os.path.join("LC_MESSAGES", "nvda.mo"))
 	translatedManifest = env.NVDATranslatedManifest(dir.File("manifest.ini"), [moFile, os.path.join("manifest-translated.ini.tpl")])
 	env.Depends(translatedManifest, ["buildVars.py"])
 	env.Depends(addon, [translatedManifest, moFile])
