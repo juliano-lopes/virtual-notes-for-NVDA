@@ -225,6 +225,25 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
         else:
             tones.beep(180, 220)
 
+    @script(
+        description=_("Add a new temporary note from clipboard")
+    )
+    def script_add_note_from_clipboard(self, gesture):
+        self.line = 0
+        try:
+            text = api.getClipData()
+        except Exception:
+            text = ""
+        if text and len(text) > 0:
+            self.memory.append(text)
+            self.index = len(self.memory) - 1
+            save_notes_to_disk(self.memory)
+            tones.beep(880, 100)
+            ui.message(f"{self.index+1} {self.memory[self.index]}")
+        else:
+            tones.beep(180, 220)
+            ui.message(_("Clipboard is empty or does not contain text"))
+
     def paste_data(self):
         focus = api.getFocusObject()
         if focus.appModule.appName == "winword":
@@ -243,5 +262,6 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
         "kb:NVDA+ALT+I":"previous_note_line",
         "kb:NVDA+ALT+O":"current_note_line",
         "kb:NVDA+CONTROL+SHIFT+U":"paste_note",
-        "kb:NVDA+CONTROL+SHIFT+O":"paste_note_line"
+        "kb:NVDA+CONTROL+SHIFT+O":"paste_note_line",
+        "kb:NVDA+ALT+V":"add_note_from_clipboard"
     }
