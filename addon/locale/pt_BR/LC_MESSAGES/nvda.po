@@ -163,3 +163,18 @@ msgstr "A área de transferência está vazia ou não contém texto"
 
 msgid "No active note to insert into"
 msgstr "Nenhuma nota ativa para inserir"
+
+msgid "Create new note"
+msgstr "Criar nova nota"
+
+msgid "Add to beginning of current note"
+msgstr "Adicionar ao começo da nota atual"
+
+msgid "Add after current line"
+msgstr "Adicionar após a linha atual"
+
+msgid "Add to end of current note"
+msgstr "Adicionar ao final da nota atual"
+
+msgid "Replace current note"
+msgstr "Substituir a nota atual"

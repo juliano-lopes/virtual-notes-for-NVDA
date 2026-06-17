@@ -49,7 +49,7 @@ def load_notes_from_disk():
     return []
 
 class MultilineTextEntryDialog(wx.Dialog):
-    def __init__(self, parent, title, message, callback):
+    def __init__(self, parent, title, message, has_current_note, callback):
         wx.Dialog.__init__(self, parent, title=title, style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER)
         self.callback = callback
         
@@ -61,37 +61,48 @@ class MultilineTextEntryDialog(wx.Dialog):
         self.text_ctrl = wx.TextCtrl(self, style=wx.TE_MULTILINE)
         sizer.Add(self.text_ctrl, 1, wx.ALL | wx.EXPAND, 10)
         
-        btn_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        self.ok_btn = wx.Button(self, wx.ID_OK, label=_("OK"))
+        btn_sizer = wx.GridSizer(rows=3, cols=2, hgap=5, vgap=5)
+        
+        self.create_btn = wx.Button(self, label=_("Create new note"))
+        self.prepend_btn = wx.Button(self, label=_("Add to beginning of current note"))
+        self.insert_after_btn = wx.Button(self, label=_("Add after current line"))
+        self.append_btn = wx.Button(self, label=_("Add to end of current note"))
+        self.replace_btn = wx.Button(self, label=_("Replace current note"))
         self.cancel_btn = wx.Button(self, wx.ID_CANCEL, label=_("Cancel"))
         
-        btn_sizer.Add(self.ok_btn, 0, wx.ALL, 5)
-        btn_sizer.Add(self.cancel_btn, 0, wx.ALL, 5)
+        if not has_current_note:
+            self.prepend_btn.Disable()
+            self.insert_after_btn.Disable()
+            self.append_btn.Disable()
+            self.replace_btn.Disable()
+            
+        btn_sizer.Add(self.create_btn, 0, wx.EXPAND)
+        btn_sizer.Add(self.prepend_btn, 0, wx.EXPAND)
+        btn_sizer.Add(self.insert_after_btn, 0, wx.EXPAND)
+        btn_sizer.Add(self.append_btn, 0, wx.EXPAND)
+        btn_sizer.Add(self.replace_btn, 0, wx.EXPAND)
+        btn_sizer.Add(self.cancel_btn, 0, wx.EXPAND)
         
-        sizer.Add(btn_sizer, 0, wx.ALIGN_RIGHT | wx.ALL, 10)
+        sizer.Add(btn_sizer, 0, wx.ALL | wx.EXPAND, 10)
             
         self.SetSizer(sizer)
-        self.SetMinSize((400, 300))
-        self.Size = (400, 300)
+        self.SetMinSize((500, 400))
+        self.Size = (500, 400)
         self.CentreOnScreen()
         
-        self.ok_btn.Bind(wx.EVT_BUTTON, self.on_ok)
-        self.cancel_btn.Bind(wx.EVT_BUTTON, self.on_cancel)
-        self.Bind(wx.EVT_CLOSE, self.on_close)
+        self.create_btn.Bind(wx.EVT_BUTTON, lambda evt: self.on_action("create"))
+        self.prepend_btn.Bind(wx.EVT_BUTTON, lambda evt: self.on_action("prepend"))
+        self.insert_after_btn.Bind(wx.EVT_BUTTON, lambda evt: self.on_action("insert_after"))
+        self.append_btn.Bind(wx.EVT_BUTTON, lambda evt: self.on_action("append"))
+        self.replace_btn.Bind(wx.EVT_BUTTON, lambda evt: self.on_action("replace"))
+        self.cancel_btn.Bind(wx.EVT_BUTTON, lambda evt: self.on_action("cancel"))
+        self.Bind(wx.EVT_CLOSE, lambda evt: self.on_action("cancel"))
         
         self.text_ctrl.SetFocus()
 
-    def on_ok(self, event):
+    def on_action(self, action_type):
         typed_text = self.text_ctrl.GetValue()
-        self.callback(True, typed_text)
-        self.Destroy()
-
-    def on_cancel(self, event):
-        self.callback(False, "")
-        self.Destroy()
-
-    def on_close(self, event):
-        self.callback(False, "")
+        self.callback(action_type, typed_text)
         self.Destroy()
 
 class GlobalPlugin(globalPluginHandler.GlobalPlugin):
@@ -99,7 +110,8 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
     
     def __init__(self):
         super(GlobalPlugin, self).__init__()
-        self.memory = load_notes_from_disk()
+        raw_memory = load_notes_from_disk()
+        self.memory = [note.replace("\r\n", "\n").replace("\r", "\n") for note in raw_memory]
         self.index = len(self.memory) - 1 if len(self.memory) > 0 else 0
         self.line = 0
     
@@ -107,7 +119,6 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
         description=_("Add a new temporary note to memory")
     )
     def script_save_note_to_memory(self, gesture):
-        self.line = 0
         focus = api.getFocusObject()
         textInfo = None
         try:
@@ -134,9 +145,11 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
                 return
 
         if text and len(text) > 0:
+            text = text.replace("\r\n", "\n").replace("\r", "\n")
             self.memory.append(text)
             self.index = len(self.memory) - 1
             save_notes_to_disk(self.memory)
+            self.line = 0
             
             tones.beep(880, 100)  # Beep a standard middle A for 1 second.
             ui.message(f"{self.index+1} {self.memory[self.index]}")
@@ -153,6 +166,7 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
                 gui.mainFrame,
                 _("Add Note"),
                 _("Write your note:"),
+                len(self.memory) > 0,
                 self.on_note_dialog_result
             )
             dialog.Show()
@@ -163,21 +177,49 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
             logHandler.log.error("Failed to open add note dialog", exc_info=True)
             ui.message(f"Error: {str(e)}")
 
-    def on_note_dialog_result(self, success, typed_text):
-        if success:
-            if typed_text and len(typed_text.strip()) > 0:
-                typed_text = typed_text.replace("\n", "\r").replace("\r\r", "\r")
-                self.memory.append(typed_text)
-                self.index = len(self.memory) - 1
-                save_notes_to_disk(self.memory)
-                tones.beep(880, 100)
-                ui.message(f"{self.index+1} {self.memory[self.index]}")
-            else:
-                tones.beep(180, 220)
-                ui.message(_("Empty note discarded"))
-        else:
+    def on_note_dialog_result(self, action_type, typed_text):
+        if action_type == "cancel":
             tones.beep(180, 220)
             ui.message(_("Note addition canceled"))
+            return
+
+        if not typed_text or len(typed_text.strip()) == 0:
+            tones.beep(180, 220)
+            ui.message(_("Empty note discarded"))
+            return
+
+        typed_text = typed_text.replace("\r\n", "\n").replace("\r", "\n")
+
+        if action_type == "create":
+            self.memory.append(typed_text)
+            self.index = len(self.memory) - 1
+            self.line = 0
+        elif action_type == "prepend":
+            current_note = self.memory[self.index]
+            self.memory[self.index] = typed_text + "\n" + current_note
+            self.line = 0
+        elif action_type == "insert_after":
+            current_note = self.memory[self.index]
+            lines = current_note.split("\n")
+            insert_idx = min(len(lines), self.line + 1)
+            lines.insert(insert_idx, typed_text)
+            self.memory[self.index] = "\n".join(lines)
+            self.line = insert_idx
+        elif action_type == "append":
+            current_note = self.memory[self.index]
+            self.memory[self.index] = current_note + "\n" + typed_text
+        elif action_type == "replace":
+            self.memory[self.index] = typed_text
+            self.line = 0
+
+        save_notes_to_disk(self.memory)
+        tones.beep(880, 100)
+        
+        if action_type == "insert_after":
+            lines = self.memory[self.index].split("\n")
+            ui.message(f"{self.index + 1}.{self.line + 1} {lines[self.line]}")
+        else:
+            ui.message(f"{self.index+1} {self.memory[self.index]}")
 
     @script(
         description=_("Go to the next note")
@@ -245,6 +287,7 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
         if textInfo is not None:
             text = textInfo.text
             if len(text) > 0:
+                text = text.replace("\r\n", "\n").replace("\r", "\n")
                 self.memory[self.index] = text
                 save_notes_to_disk(self.memory)
                 tones.beep(580, 220)
@@ -258,7 +301,7 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
     )
     def script_next_note_line(self, gesture):
         if len(self.memory) > 0:
-            lines = self.memory[self.index].split("\r")
+            lines = self.memory[self.index].split("\n")
             if len(lines) > 0 and self.line < (len(lines) - 1):
                 self.line+=1
                 ui.message(f"{self.index + 1}.{self.line + 1} {lines[self.line]}")
@@ -273,7 +316,7 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
     )
     def script_previous_note_line(self, gesture):
         if len(self.memory) > 0:
-            lines = self.memory[self.index].split("\r")
+            lines = self.memory[self.index].split("\n")
             if len(lines) > 0 and self.line >= 1:
                 self.line-=1
                 ui.message(f"{self.index + 1}.{self.line + 1} {lines[self.line]}")
@@ -288,7 +331,7 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
     )
     def script_current_note_line(self, gesture):
         if len(self.memory) > 0:
-            lines = self.memory[self.index].split("\r")
+            lines = self.memory[self.index].split("\n")
             if len(lines) > 0:
                 ui.message(f"{self.index + 1}.{self.line + 1} {lines[self.line]}")
             else:
@@ -312,7 +355,7 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
     )
     def script_paste_note_line(self, gesture):
         if len(self.memory) > 0:
-            lines = self.memory[self.index].split("\r")
+            lines = self.memory[self.index].split("\n")
             if len(lines) > 0:
                 api.copyToClip(lines[self.line])
                 self.paste_data()
@@ -333,6 +376,7 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
         except Exception:
             text = ""
         if text and len(text) > 0:
+            text = text.replace("\r\n", "\n").replace("\r", "\n")
             self.memory.append(text)
             self.index = len(self.memory) - 1
             save_notes_to_disk(self.memory)
@@ -363,14 +407,14 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
             ui.message(_("No text selected"))
             return
 
-        selected_text = textInfo.text
+        selected_text = textInfo.text.replace("\r\n", "\n").replace("\r", "\n")
         current_note = self.memory[self.index]
-        lines = current_note.split("\r")
+        lines = current_note.split("\n")
         
         insert_idx = min(len(lines), self.line + 1)
         lines.insert(insert_idx, selected_text)
         
-        new_note = "\r".join(lines)
+        new_note = "\n".join(lines)
         self.memory[self.index] = new_note
         save_notes_to_disk(self.memory)
         
