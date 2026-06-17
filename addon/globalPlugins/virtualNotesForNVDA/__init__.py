@@ -244,6 +244,43 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
             tones.beep(180, 220)
             ui.message(_("Clipboard is empty or does not contain text"))
 
+    @script(
+        description=_("Insert selected text after the current line of the active note")
+    )
+    def script_insert_text_at_current_line(self, gesture):
+        if len(self.memory) == 0:
+            tones.beep(180, 220)
+            ui.message(_("No active note to insert into"))
+            return
+
+        focus = api.getFocusObject()
+        textInfo = None
+        if focus.treeInterceptor is not None:
+            textInfo = focus.treeInterceptor.makeTextInfo(textInfos.POSITION_SELECTION)
+        elif focus.windowClassName in ["AkelEditW"] or focus.role in [ROLE_EDITABLETEXT, ROLE_DOCUMENT]:
+            textInfo = focus.makeTextInfo(textInfos.POSITION_SELECTION)
+        
+        if textInfo is None or len(textInfo.text) == 0:
+            tones.beep(180, 220)
+            ui.message(_("No text selected"))
+            return
+
+        selected_text = textInfo.text
+        current_note = self.memory[self.index]
+        lines = current_note.split("\r")
+        
+        insert_idx = min(len(lines), self.line + 1)
+        lines.insert(insert_idx, selected_text)
+        
+        new_note = "\r".join(lines)
+        self.memory[self.index] = new_note
+        save_notes_to_disk(self.memory)
+        
+        self.line = insert_idx
+        
+        tones.beep(880, 100)
+        ui.message(f"{self.index + 1}.{self.line + 1} {selected_text}")
+
     def paste_data(self):
         focus = api.getFocusObject()
         if focus.appModule.appName == "winword":
@@ -263,5 +300,6 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
         "kb:NVDA+ALT+O":"current_note_line",
         "kb:NVDA+CONTROL+SHIFT+U":"paste_note",
         "kb:NVDA+CONTROL+SHIFT+O":"paste_note_line",
-        "kb:NVDA+ALT+V":"add_note_from_clipboard"
+        "kb:NVDA+ALT+V":"add_note_from_clipboard",
+        "kb:NVDA+SHIFT+ALT+A":"insert_text_at_current_line"
     }
