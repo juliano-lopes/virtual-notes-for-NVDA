@@ -1,5 +1,6 @@
 # Add-on virtualNotesForNVDA
 import addonHandler
+import wx
 
 import tones
 
@@ -47,6 +48,52 @@ def load_notes_from_disk():
             pass
     return []
 
+class MultilineTextEntryDialog(wx.Dialog):
+    def __init__(self, parent, title, message, callback):
+        wx.Dialog.__init__(self, parent, title=title, style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER)
+        self.callback = callback
+        
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        
+        self.label = wx.StaticText(self, label=message)
+        sizer.Add(self.label, 0, wx.ALL | wx.EXPAND, 10)
+        
+        self.text_ctrl = wx.TextCtrl(self, style=wx.TE_MULTILINE)
+        sizer.Add(self.text_ctrl, 1, wx.ALL | wx.EXPAND, 10)
+        
+        btn_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.ok_btn = wx.Button(self, wx.ID_OK, label=_("OK"))
+        self.cancel_btn = wx.Button(self, wx.ID_CANCEL, label=_("Cancel"))
+        
+        btn_sizer.Add(self.ok_btn, 0, wx.ALL, 5)
+        btn_sizer.Add(self.cancel_btn, 0, wx.ALL, 5)
+        
+        sizer.Add(btn_sizer, 0, wx.ALIGN_RIGHT | wx.ALL, 10)
+            
+        self.SetSizer(sizer)
+        self.SetMinSize((400, 300))
+        self.Size = (400, 300)
+        self.CentreOnScreen()
+        
+        self.ok_btn.Bind(wx.EVT_BUTTON, self.on_ok)
+        self.cancel_btn.Bind(wx.EVT_BUTTON, self.on_cancel)
+        self.Bind(wx.EVT_CLOSE, self.on_close)
+        
+        self.text_ctrl.SetFocus()
+
+    def on_ok(self, event):
+        typed_text = self.text_ctrl.GetValue()
+        self.callback(True, typed_text)
+        self.Destroy()
+
+    def on_cancel(self, event):
+        self.callback(False, "")
+        self.Destroy()
+
+    def on_close(self, event):
+        self.callback(False, "")
+        self.Destroy()
+
 class GlobalPlugin(globalPluginHandler.GlobalPlugin):
     scriptCategory = _("Virtual Notes For NVDA")
     
@@ -63,23 +110,74 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
         self.line = 0
         focus = api.getFocusObject()
         textInfo = None
-        if focus.treeInterceptor is not None:
-            textInfo = focus.treeInterceptor.makeTextInfo(textInfos.POSITION_SELECTION)
-        elif focus.windowClassName in ["AkelEditW"] or focus.role in [ROLE_EDITABLETEXT, ROLE_DOCUMENT]:
-            textInfo = focus.makeTextInfo(textInfos.POSITION_SELECTION)
+        try:
+            if focus.treeInterceptor is not None:
+                textInfo = focus.treeInterceptor.makeTextInfo(textInfos.POSITION_SELECTION)
+            elif focus.windowClassName in ["AkelEditW"] or focus.role in [ROLE_EDITABLETEXT, ROLE_DOCUMENT]:
+                textInfo = focus.makeTextInfo(textInfos.POSITION_SELECTION)
+        except Exception as e:
+            import logHandler
+            logHandler.log.error("Failed to get textInfo", exc_info=True)
+            tones.beep(300, 500)
+            ui.message(f"Error selecting: {str(e)}")
+            return
+        
+        text = ""
         if textInfo is not None:
-            text = textInfo.text
-            if len(text) > 0:
-                #keyCode = str(gesture.vkCode) # Get which number the user pressed.
-                self.memory.append(text)
+            try:
+                text = textInfo.text
+            except Exception as e:
+                import logHandler
+                logHandler.log.error("Failed to get textInfo text", exc_info=True)
+                tones.beep(300, 500)
+                ui.message(f"Error reading text: {str(e)}")
+                return
+
+        if text and len(text) > 0:
+            self.memory.append(text)
+            self.index = len(self.memory) - 1
+            save_notes_to_disk(self.memory)
+            
+            tones.beep(880, 100)  # Beep a standard middle A for 1 second.
+            ui.message(f"{self.index+1} {self.memory[self.index]}")
+        else:
+            import wx
+            wx.CallAfter(self.open_add_note_dialog)
+
+    def open_add_note_dialog(self):
+        import wx
+        import gui
+        try:
+            gui.mainFrame.prePopup()
+            dialog = MultilineTextEntryDialog(
+                gui.mainFrame,
+                _("Add Note"),
+                _("Write your note:"),
+                self.on_note_dialog_result
+            )
+            dialog.Show()
+            gui.mainFrame.postPopup()
+        except Exception as e:
+            tones.beep(150, 500)
+            import logHandler
+            logHandler.log.error("Failed to open add note dialog", exc_info=True)
+            ui.message(f"Error: {str(e)}")
+
+    def on_note_dialog_result(self, success, typed_text):
+        if success:
+            if typed_text and len(typed_text.strip()) > 0:
+                typed_text = typed_text.replace("\n", "\r").replace("\r\r", "\r")
+                self.memory.append(typed_text)
                 self.index = len(self.memory) - 1
                 save_notes_to_disk(self.memory)
-                
-                tones.beep(880, 100)  # Beep a standard middle A for 1 second.
+                tones.beep(880, 100)
                 ui.message(f"{self.index+1} {self.memory[self.index]}")
             else:
-                # Translators: this message is shown when no text is selected
-                ui.message(_("No text selected"))
+                tones.beep(180, 220)
+                ui.message(_("Empty note discarded"))
+        else:
+            tones.beep(180, 220)
+            ui.message(_("Note addition canceled"))
 
     @script(
         description=_("Go to the next note")
