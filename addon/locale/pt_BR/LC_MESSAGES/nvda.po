@@ -244,5 +244,11 @@ msgstr "Renomear nota de voz atual"
 msgid "Save changes to current note"
 msgstr "Salvar alterações na nota atual"
 
+msgid "Move the current note one position to the left"
+msgstr "Mover a nota atual uma posição para a esquerda"
+
+msgid "Move the current note one position to the right"
+msgstr "Mover a nota atual uma posição para a direita"
+
 
 

@@ -694,6 +694,32 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
         tones.beep(880, 100)
         ui.message(f"{self.index + 1}.{self.line + 1} {selected_text}")
 
+    @script(
+        description=_("Move the current note one position to the left")
+    )
+    def script_move_note_left(self, gesture):
+        if len(self.memory) > 1 and self.index > 0:
+            self.memory[self.index], self.memory[self.index - 1] = self.memory[self.index - 1], self.memory[self.index]
+            self.index -= 1
+            self.save_state()
+            tones.beep(550, 100)
+            self._announce_note_at_index()
+        else:
+            tones.beep(280, 100)
+
+    @script(
+        description=_("Move the current note one position to the right")
+    )
+    def script_move_note_right(self, gesture):
+        if len(self.memory) > 1 and self.index < len(self.memory) - 1:
+            self.memory[self.index], self.memory[self.index + 1] = self.memory[self.index + 1], self.memory[self.index]
+            self.index += 1
+            self.save_state()
+            tones.beep(550, 100)
+            self._announce_note_at_index()
+        else:
+            tones.beep(280, 100)
+
     def paste_data(self):
         focus = api.getFocusObject()
         if focus.appModule.appName == "winword":
@@ -832,5 +858,7 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
         "kb:NVDA+CONTROL+SHIFT+O":"paste_note_line",
         "kb:NVDA+ALT+V":"add_note_from_clipboard",
         "kb:NVDA+SHIFT+ALT+A":"insert_text_at_current_line",
-        "kb:NVDA+ALT+G":"toggle_voice_note_recording"
+        "kb:NVDA+ALT+G":"toggle_voice_note_recording",
+        "kb:NVDA+SHIFT+ALT+J":"move_note_left",
+        "kb:NVDA+SHIFT+ALT+L":"move_note_right"
     }
