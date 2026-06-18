@@ -545,14 +545,29 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
     )
     def script_paste_note(self, gesture):
         if len(self.memory) > 0:
-            if self.memory[self.index].startswith("[Audio]"):
-                tones.beep(180, 220)
-                ui.message(_("Cannot perform this action on a voice note"))
+            note = self.memory[self.index]
+            if note.startswith("[Audio]"):
+                filename = note[len("[Audio] "):]
+                voice_dir = os.path.join(globalVars.appArgs.configPath, "voiceNotes")
+                filepath = os.path.join(voice_dir, filename)
+                if os.path.exists(filepath):
+                    if self._copy_file_to_clipboard(filepath):
+                        import wx
+                        wx.CallLater(700, self.paste_data)
+                        tones.beep(1080, 200)
+                        display_name = filename[:-4] if filename.endswith(".wav") else filename
+                        ui.message(f"{self.index+1} {display_name}")
+                    else:
+                        tones.beep(180, 220)
+                else:
+                    tones.beep(180, 220)
+                    ui.message(_("Audio file not found"))
                 return
-            api.copyToClip(self.memory[self.index])
-            self.paste_data()
+            api.copyToClip(note)
+            import wx
+            wx.CallLater(700, self.paste_data)
             tones.beep(1080, 200)
-            ui.message(f"{self.index+1} {self.memory[self.index]}")
+            ui.message(f"{self.index+1} {note}")
         else:
             tones.beep(180, 220)
     @script(
@@ -567,7 +582,8 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
             lines = self.memory[self.index].split("\n")
             if len(lines) > 0:
                 api.copyToClip(lines[self.line])
-                self.paste_data()
+                import wx
+                wx.CallLater(700, self.paste_data)
                 tones.beep(1080, 200)
                 ui.message(f"{self.index + 1}.{self.line + 1} {lines[self.line]}")
             else:
@@ -643,7 +659,123 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
         if focus.appModule.appName == "winword":
             focus.WinwordSelectionObject.Paste()
         else:
-            keyboardHandler.KeyboardInputGesture.fromName("CONTROL+V").send()
+            import ctypes
+            KEYEVENTF_KEYUP = 0x0002
+            VK_CONTROL = 0x11
+            VK_V = 0x56
+            
+            # Sound a quick diagnostic beep (600Hz) when paste is physically simulated
+            tones.beep(600, 50)
+            
+            # Direct OS simulation of Control+V
+            ctypes.windll.user32.keybd_event(VK_CONTROL, 0, 0, 0)
+            ctypes.windll.user32.keybd_event(VK_V, 0, 0, 0)
+            ctypes.windll.user32.keybd_event(VK_V, 0, KEYEVENTF_KEYUP, 0)
+            ctypes.windll.user32.keybd_event(VK_CONTROL, 0, KEYEVENTF_KEYUP, 0)
+
+    def _copy_file_to_clipboard(self, filepath):
+        from ctypes import wintypes
+        CF_HDROP = 15
+        GMEM_MOVEABLE = 0x0002
+        GMEM_ZEROINIT = 0x0040
+        GHND = GMEM_MOVEABLE | GMEM_ZEROINIT
+        
+        class POINT(ctypes.Structure):
+            _fields_ = [("x", wintypes.LONG), ("y", wintypes.LONG)]
+            
+        class DROPFILES(ctypes.Structure):
+            _fields_ = [
+                ("pFiles", wintypes.DWORD),
+                ("pt", POINT),
+                ("fNC", wintypes.BOOL),
+                ("fWide", wintypes.BOOL)
+            ]
+            
+        kernel32 = ctypes.windll.kernel32
+        user32 = ctypes.windll.user32
+        
+        kernel32.GlobalAlloc.argtypes = [wintypes.UINT, ctypes.c_size_t]
+        kernel32.GlobalAlloc.restype = wintypes.HGLOBAL
+        
+        kernel32.GlobalLock.argtypes = [wintypes.HGLOBAL]
+        kernel32.GlobalLock.restype = ctypes.c_void_p
+        
+        kernel32.GlobalUnlock.argtypes = [wintypes.HGLOBAL]
+        kernel32.GlobalUnlock.restype = wintypes.BOOL
+        
+        kernel32.GlobalFree.argtypes = [wintypes.HGLOBAL]
+        kernel32.GlobalFree.restype = wintypes.HGLOBAL
+        
+        user32.OpenClipboard.argtypes = [wintypes.HWND]
+        user32.OpenClipboard.restype = wintypes.BOOL
+        
+        user32.SetClipboardData.argtypes = [wintypes.UINT, wintypes.HANDLE]
+        user32.SetClipboardData.restype = wintypes.HANDLE
+        
+        user32.RegisterClipboardFormatW.argtypes = [wintypes.LPCWSTR]
+        user32.RegisterClipboardFormatW.restype = wintypes.UINT
+        
+        filepath = os.path.abspath(filepath).replace('/', '\\')
+        files_data = (filepath + "\x00\x00").encode('utf-16le')
+        
+        struct_size = ctypes.sizeof(DROPFILES)
+        total_size = struct_size + len(files_data)
+        
+        h_global = kernel32.GlobalAlloc(GHND, total_size)
+        if not h_global:
+            return False
+            
+        ptr = kernel32.GlobalLock(h_global)
+        if not ptr:
+            kernel32.GlobalFree(h_global)
+            return False
+            
+        try:
+            dropfiles = DROPFILES()
+            dropfiles.pFiles = struct_size
+            dropfiles.pt.x = 0
+            dropfiles.pt.y = 0
+            dropfiles.fNC = False
+            dropfiles.fWide = True
+            
+            ctypes.memmove(ptr, ctypes.byref(dropfiles), struct_size)
+            ctypes.memmove(ptr + struct_size, files_data, len(files_data))
+        finally:
+            kernel32.GlobalUnlock(h_global)
+            
+        CF_PREFERRED_DROP_EFFECT = user32.RegisterClipboardFormatW("Preferred DropEffect")
+        h_drop_effect = kernel32.GlobalAlloc(GHND, 4)
+        if h_drop_effect:
+            ptr_drop = kernel32.GlobalLock(h_drop_effect)
+            if ptr_drop:
+                try:
+                    # 1 = DROPEFFECT_COPY
+                    ctypes.memmove(ptr_drop, ctypes.byref(wintypes.DWORD(1)), 4)
+                finally:
+                    kernel32.GlobalUnlock(h_drop_effect)
+            else:
+                kernel32.GlobalFree(h_drop_effect)
+                h_drop_effect = None
+                
+        if not user32.OpenClipboard(None):
+            kernel32.GlobalFree(h_global)
+            if h_drop_effect:
+                kernel32.GlobalFree(h_drop_effect)
+            return False
+            
+        try:
+            user32.EmptyClipboard()
+            res = user32.SetClipboardData(CF_HDROP, h_global)
+            if not res:
+                kernel32.GlobalFree(h_global)
+            if h_drop_effect:
+                res_drop = user32.SetClipboardData(CF_PREFERRED_DROP_EFFECT, h_drop_effect)
+                if not res_drop:
+                    kernel32.GlobalFree(h_drop_effect)
+        finally:
+            user32.CloseClipboard()
+            
+        return True
 
     __gestures={
         "kb:NVDA+ALT+A": "save_note_to_memory",
