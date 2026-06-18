@@ -229,9 +229,10 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
             tones.beep(180, 220)
 
     @script(
-        description=_("Add a new temporary note to memory")
+        description=_("Add a new note to memory (opens dialog if no text is selected)")
     )
     def script_save_note_to_memory(self, gesture):
+
         focus = api.getFocusObject()
         textInfo = None
         try:
@@ -568,9 +569,10 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
             tones.beep(180, 220)
 
     @script(
-        description=_("Add a new temporary note from clipboard")
+        description=_("Add a new note from clipboard")
     )
     def script_add_note_from_clipboard(self, gesture):
+
         self.line = 0
         try:
             text = api.getClipData()

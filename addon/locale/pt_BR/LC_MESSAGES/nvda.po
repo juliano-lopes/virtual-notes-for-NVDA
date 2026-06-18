@@ -23,8 +23,8 @@ msgid "Virtual Notes For NVDA"
 msgstr "Notas virtuais para o NVDA"
 
 #: addon/globalPlugins/virtualNotesForNVDA/__init__.py:35
-msgid "Add a new temporary note to memory"
-msgstr "Adicionar uma nova nota temporária à memória"
+msgid "Add a new note to memory (opens dialog if no text is selected)"
+msgstr "Adicionar uma nova nota à memória (abre o diálogo se não houver texto selecionado)"
 
 #. Translators: this message is shown when no text is selected
 #: addon/globalPlugins/virtualNotesForNVDA/__init__.py:56
@@ -214,5 +214,12 @@ msgstr "Não é possível realizar esta ação em uma nota de texto"
 
 msgid "Pause or resume the current voice note"
 msgstr "Pausar ou retomar a nota de voz atual"
+
+msgid "Add a new note from clipboard"
+msgstr "Adicionar uma nova nota da área de transferência"
+
+msgid "Insert selected text after the current line of the active note"
+msgstr "Inserir o texto selecionado após a linha atual da nota ativa"
+
 
 
