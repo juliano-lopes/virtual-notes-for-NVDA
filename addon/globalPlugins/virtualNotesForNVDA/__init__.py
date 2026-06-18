@@ -36,11 +36,16 @@ addonHandler.initTranslation()
 def get_notes_file_path():
     return os.path.join(globalVars.appArgs.configPath, "virtualNotesData.json")
 
-def save_notes_to_disk(memory_list):
+def save_notes_to_disk(memory_list, active_index=None, active_line=0):
     try:
         file_path = get_notes_file_path()
+        data = {
+            "notes": memory_list,
+            "active_index": active_index if active_index is not None else (len(memory_list) - 1 if len(memory_list) > 0 else 0),
+            "active_line": active_line
+        }
         with open(file_path, "w", encoding="utf-8") as f:
-            json.dump(memory_list, f, ensure_ascii=False, indent=4)
+            json.dump(data, f, ensure_ascii=False, indent=4)
     except Exception:
         pass
 
@@ -49,10 +54,17 @@ def load_notes_from_disk():
     if os.path.exists(file_path):
         try:
             with open(file_path, "r", encoding="utf-8") as f:
-                return json.load(f)
+                data = json.load(f)
+                if isinstance(data, dict):
+                    notes = data.get("notes", [])
+                    active_index = data.get("active_index", len(notes) - 1 if len(notes) > 0 else 0)
+                    active_line = data.get("active_line", 0)
+                    return notes, active_index, active_line
+                elif isinstance(data, list):
+                    return data, (len(data) - 1 if len(data) > 0 else 0), 0
         except Exception:
             pass
-    return []
+    return [], 0, 0
 
 class MultilineTextEntryDialog(wx.Dialog):
     def __init__(self, parent, title, message, has_current_note, is_audio_note, callback):
@@ -122,12 +134,21 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
     
     def __init__(self):
         super(GlobalPlugin, self).__init__()
-        raw_memory = load_notes_from_disk()
+        raw_memory, active_index, active_line = load_notes_from_disk()
         self.memory = [note.replace("\r\n", "\n").replace("\r", "\n") for note in raw_memory]
-        self.index = len(self.memory) - 1 if len(self.memory) > 0 else 0
+        self.index = active_index if len(self.memory) > 0 else 0
         self.line = 0
+        if len(self.memory) > 0:
+            note_lines = self.memory[self.index].split("\n")
+            if active_line < len(note_lines):
+                self.line = active_line
+            else:
+                self.line = len(note_lines) - 1 if len(note_lines) > 0 else 0
         self.is_recording = False
         self.temp_voice_path = ""
+    
+    def save_state(self):
+        save_notes_to_disk(self.memory, self.index, self.line)
     
     def terminate(self):
         super(GlobalPlugin, self).terminate()
@@ -203,7 +224,7 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
                 self.memory.append(f"[Audio] {filename}")
                 self.index = len(self.memory) - 1
                 self.line = 0
-                save_notes_to_disk(self.memory)
+                self.save_state()
                 self._announce_note_at_index()
             else:
                 ui.message(_("Failed to save voice note"))
@@ -269,8 +290,8 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
             text = text.replace("\r\n", "\n").replace("\r", "\n")
             self.memory.append(text)
             self.index = len(self.memory) - 1
-            save_notes_to_disk(self.memory)
             self.line = 0
+            self.save_state()
             
             tones.beep(880, 100)  # Beep a standard middle A for 1 second.
             ui.message(f"{self.index+1} {self.memory[self.index]}")
@@ -378,7 +399,7 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
             self.memory[self.index] = typed_text
             self.line = 0
 
-        save_notes_to_disk(self.memory)
+        self.save_state()
         tones.beep(880, 100)
         
         if action_type == "insert_after":
@@ -394,6 +415,7 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
         self.line = 0
         if self.index < (len(self.memory) - 1):
             self.index+=1
+            self.save_state()
             self._announce_note_at_index()
         else:
             tones.beep(280, 100)  # Beep a standard middle A for 1 second.
@@ -407,6 +429,7 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
         self.line = 0
         if self.index >= 1:
             self.index-=1
+            self.save_state()
             if len(self.memory) > 0:
                 self._announce_note_at_index()
         else:
@@ -443,7 +466,8 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
             self.memory.pop(self.index)
             if self.index > 0 and self.index == len(self.memory):
                 self.index -= 1
-            save_notes_to_disk(self.memory)
+            self.line = 0
+            self.save_state()
             tones.beep(580, 220)
             if len(self.memory) > 0:
                 self._announce_note_at_index()
@@ -478,7 +502,8 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
                 
                 text = text.replace("\r\n", "\n").replace("\r", "\n")
                 self.memory[self.index] = text
-                save_notes_to_disk(self.memory)
+                self.line = 0
+                self.save_state()
                 tones.beep(580, 220)
                 ui.message(f"{self.index+1} {self.memory[self.index]}")
             else:
@@ -497,6 +522,7 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
             lines = self.memory[self.index].split("\n")
             if len(lines) > 0 and self.line < (len(lines) - 1):
                 self.line+=1
+                self.save_state()
                 ui.message(f"{self.index + 1}.{self.line + 1} {lines[self.line]}")
             else:
                 tones.beep(280, 100)
@@ -516,6 +542,7 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
             lines = self.memory[self.index].split("\n")
             if len(lines) > 0 and self.line >= 1:
                 self.line-=1
+                self.save_state()
                 ui.message(f"{self.index + 1}.{self.line + 1} {lines[self.line]}")
             else:
                 tones.beep(280, 100)
@@ -605,7 +632,8 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
             text = text.replace("\r\n", "\n").replace("\r", "\n")
             self.memory.append(text)
             self.index = len(self.memory) - 1
-            save_notes_to_disk(self.memory)
+            self.line = 0
+            self.save_state()
             tones.beep(880, 100)
             ui.message(f"{self.index+1} {self.memory[self.index]}")
         else:
@@ -647,9 +675,8 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
         
         new_note = "\n".join(lines)
         self.memory[self.index] = new_note
-        save_notes_to_disk(self.memory)
-        
         self.line = insert_idx
+        self.save_state()
         
         tones.beep(880, 100)
         ui.message(f"{self.index + 1}.{self.line + 1} {selected_text}")
