@@ -12,11 +12,14 @@ Here are the available shortcuts:
   * Add the typed text to the beginning of the current note.
   * Insert the typed text right after the current line of the active note.
   * Add the typed text to the end of the current note.
-  * Rename a voice note (if the active note is an audio note).
+  * Save changes to the current note (if editing a text note).
+  * Rename the current voice note (if the active note is an audio note).
 * NVDA + Alt + V: Add a new note directly from the clipboard.
 * NVDA + Shift + Alt + A: Insert selected text as a new line right after the current line in the active note.
 * NVDA + Alt + J: Go to the previous note.
 * NVDA + Alt + L: Go to the next note.
+* NVDA + Shift + Alt + J: Move the current note one position to the left (reorder).
+* NVDA + Shift + Alt + L: Move the current note one position to the right (reorder).
 * NVDA + Alt + U: Announce/play the current note.
 * NVDA + CONTROL + SHIFT + U: Paste the current note to the current application.
 * NVDA + Alt + S: Replace the note in the current position (you need to select some text first).

@@ -12,11 +12,14 @@ Aqui estão os atalhos disponíveis:
   * Adicionar o texto digitado ao início da nota atual.
   * Inserir o texto digitado logo após a linha ativa da nota.
   * Adicionar o texto digitado ao final da nota atual.
-  * Renomear uma nota de voz (se a nota ativa for de áudio).
+  * Salvar alterações na nota atual (se for nota de texto).
+  * Renomear a nota de voz atual (se a nota ativa for de áudio).
 * NVDA + Alt + V: Adicionar uma nova nota diretamente da área de transferência.
 * NVDA + Shift + Alt + A: Inserir o texto selecionado como uma nova linha logo após a linha ativa na nota atual.
 * NVDA + Alt + J: Ir para a nota anterior.
 * NVDA + Alt + L: Ir para a próxima nota.
+* NVDA + Shift + Alt + J: Mover a nota atual uma posição para a esquerda (reorganizar).
+* NVDA + Shift + Alt + L: Mover a nota atual uma posição para a direita (reorganizar).
 * NVDA + Alt + U: Anunciar ou reproduzir a nota atual.
 * NVDA + CONTROL + SHIFT + U: Colar a nota corrente no aplicativo atual.
 * NVDA + Alt + S: Substituir a nota na posição atual (é preciso selecionar algum texto primeiro).
