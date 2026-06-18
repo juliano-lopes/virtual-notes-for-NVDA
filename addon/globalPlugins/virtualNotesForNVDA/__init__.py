@@ -67,7 +67,7 @@ def load_notes_from_disk():
     return [], 0, 0
 
 class MultilineTextEntryDialog(wx.Dialog):
-    def __init__(self, parent, title, message, has_current_note, is_audio_note, callback):
+    def __init__(self, parent, title, message, has_current_note, is_audio_note, current_note_text, callback):
         wx.Dialog.__init__(self, parent, title=title, style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER)
         self.callback = callback
         
@@ -77,15 +77,18 @@ class MultilineTextEntryDialog(wx.Dialog):
         sizer.Add(self.label, 0, wx.ALL | wx.EXPAND, 10)
         
         self.text_ctrl = wx.TextCtrl(self, style=wx.TE_MULTILINE)
+        if has_current_note and not is_audio_note:
+            self.text_ctrl.SetValue(current_note_text)
         sizer.Add(self.text_ctrl, 1, wx.ALL | wx.EXPAND, 10)
         
         btn_sizer = wx.GridSizer(rows=4, cols=2, hgap=5, vgap=5)
         
         self.create_btn = wx.Button(self, label=_("Create new note"))
-        self.rename_btn = wx.Button(self, label=_("Rename voice note"))
+        self.rename_btn = wx.Button(self, label=_("Rename current voice note"))
         self.prepend_btn = wx.Button(self, label=_("Add to beginning of current note"))
         self.insert_after_btn = wx.Button(self, label=_("Add after current line"))
         self.append_btn = wx.Button(self, label=_("Add to end of current note"))
+        self.save_changes_btn = wx.Button(self, label=_("Save changes to current note"))
         self.replace_btn = wx.Button(self, label=_("Replace current note"))
         self.cancel_btn = wx.Button(self, wx.ID_CANCEL, label=_("Cancel"))
         
@@ -95,6 +98,7 @@ class MultilineTextEntryDialog(wx.Dialog):
             self.prepend_btn.Disable()
             self.insert_after_btn.Disable()
             self.append_btn.Disable()
+            self.save_changes_btn.Disable()
         if not has_current_note:
             self.replace_btn.Disable()
             
@@ -103,6 +107,7 @@ class MultilineTextEntryDialog(wx.Dialog):
         btn_sizer.Add(self.prepend_btn, 0, wx.EXPAND)
         btn_sizer.Add(self.insert_after_btn, 0, wx.EXPAND)
         btn_sizer.Add(self.append_btn, 0, wx.EXPAND)
+        btn_sizer.Add(self.save_changes_btn, 0, wx.EXPAND)
         btn_sizer.Add(self.replace_btn, 0, wx.EXPAND)
         btn_sizer.Add(self.cancel_btn, 0, wx.EXPAND)
         
@@ -118,6 +123,7 @@ class MultilineTextEntryDialog(wx.Dialog):
         self.prepend_btn.Bind(wx.EVT_BUTTON, lambda evt: self.on_action("prepend"))
         self.insert_after_btn.Bind(wx.EVT_BUTTON, lambda evt: self.on_action("insert_after"))
         self.append_btn.Bind(wx.EVT_BUTTON, lambda evt: self.on_action("append"))
+        self.save_changes_btn.Bind(wx.EVT_BUTTON, lambda evt: self.on_action("save_changes"))
         self.replace_btn.Bind(wx.EVT_BUTTON, lambda evt: self.on_action("replace"))
         self.cancel_btn.Bind(wx.EVT_BUTTON, lambda evt: self.on_action("cancel"))
         self.Bind(wx.EVT_CLOSE, lambda evt: self.on_action("cancel"))
@@ -306,12 +312,14 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
             gui.mainFrame.prePopup()
             has_current_note = len(self.memory) > 0
             is_audio_note = has_current_note and self.memory[self.index].startswith("[Audio]")
+            current_note_text = self.memory[self.index] if has_current_note else ""
             dialog = MultilineTextEntryDialog(
                 gui.mainFrame,
                 _("Add Note"),
                 _("Write your note:"),
                 has_current_note,
                 is_audio_note,
+                current_note_text,
                 self.on_note_dialog_result
             )
             dialog.Show()
@@ -339,6 +347,11 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
             self.memory.append(typed_text)
             self.index = len(self.memory) - 1
             self.line = 0
+        elif action_type == "save_changes":
+            self.memory[self.index] = typed_text
+            lines = typed_text.split("\n")
+            if self.line >= len(lines):
+                self.line = len(lines) - 1 if len(lines) > 0 else 0
         elif action_type == "rename":
             safe_name = "".join(c for c in typed_text.strip() if c not in r'\/:*?"<>|')
             if not safe_name:
