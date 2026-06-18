@@ -178,8 +178,15 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
             self.temp_voice_path = os.path.join(voice_dir, filename)
             
             self._send_mci("open new type waveaudio alias recsound")
+            self._send_mci("set recsound time format ms")
+            self._send_mci("set recsound bitspersample 16")
+            self._send_mci("set recsound samplespersec 44100")
+            self._send_mci("set recsound channels 1")
+            self._send_mci("set recsound alignment 2")
+            self._send_mci("set recsound bytespersec 88200")
             self._send_mci("record recsound")
             self.is_recording = True
+
             ui.message(_("Recording voice note"))
         else:
             # Stop recording
