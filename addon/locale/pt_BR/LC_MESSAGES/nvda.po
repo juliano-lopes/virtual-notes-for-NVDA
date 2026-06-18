@@ -178,3 +178,41 @@ msgstr "Adicionar ao final da nota atual"
 
 msgid "Replace current note"
 msgstr "Substituir a nota atual"
+
+msgid "Voice note"
+msgstr "Nota de voz"
+
+msgid "Recording voice note"
+msgstr "Gravando nota de voz"
+
+msgid "Failed to save voice note"
+msgstr "Falha ao salvar nota de voz"
+
+msgid "Cannot perform this action on a voice note"
+msgstr "Não é possível realizar esta ação em uma nota de voz"
+
+msgid "Audio file not found"
+msgstr "Arquivo de áudio não encontrado"
+
+msgid "Record a voice note"
+msgstr "Gravar uma nota de voz"
+
+msgid "Rename voice note"
+msgstr "Renomear nota de voz"
+
+msgid "Paused"
+msgstr "Pausado"
+
+msgid "Resumed"
+msgstr "Retomado"
+
+msgid "Invalid name"
+msgstr "Nome inválido"
+
+msgid "Cannot perform this action on a text note"
+msgstr "Não é possível realizar esta ação em uma nota de texto"
+
+msgid "Pause or resume the current voice note"
+msgstr "Pausar ou retomar a nota de voz atual"
+
+
