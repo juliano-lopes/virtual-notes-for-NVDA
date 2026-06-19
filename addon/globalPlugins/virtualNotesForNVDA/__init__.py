@@ -17,11 +17,276 @@ import os
 import globalVars
 import ctypes
 import datetime
+import threading
+import wave
+import struct
+import time
+from comtypes import GUID, IUnknown, COMMETHOD, HRESULT
+from comtypes.client import CreateObject
+from ctypes import POINTER, c_byte, c_uint32, c_ulong, c_uint64, cast, byref, Structure, c_int, c_wchar_p, c_int64
+from ctypes.wintypes import DWORD, WORD, HANDLE
 
 winmm = ctypes.windll.winmm
 SND_FILENAME = 0x00020000
 SND_ASYNC = 0x0001
 
+REFERENCE_TIME = c_int64
+
+class WAVEFORMATEX(Structure):
+    _fields_ = [
+        ("wFormatTag", WORD),
+        ("nChannels", WORD),
+        ("nSamplesPerSec", DWORD),
+        ("nAvgBytesPerSec", DWORD),
+        ("nBlockAlign", WORD),
+        ("wBitsPerSample", WORD),
+        ("cbSize", WORD),
+    ]
+
+class IMMDevice(IUnknown):
+    _iid_ = GUID("{D666063F-1587-4E43-81F1-B948E807363F}")
+    _methods_ = (
+        COMMETHOD([], HRESULT, "Activate",
+                  (["in"], POINTER(GUID), "iid"),
+                  (["in"], DWORD, "dwClsContext"),
+                  (["in"], POINTER(c_int), "pActivationParams"),
+                  (["out"], POINTER(POINTER(IUnknown)), "ppInterface")),
+        COMMETHOD([], HRESULT, "OpenPropertyStore"),
+        COMMETHOD([], HRESULT, "GetId",
+                  (["out"], POINTER(c_wchar_p), "ppstrId")),
+        COMMETHOD([], HRESULT, "GetState",
+                  (["out"], POINTER(DWORD), "pdwState")),
+    )
+
+class IMMDeviceEnumerator(IUnknown):
+    _iid_ = GUID("{A95664D2-9614-4F35-A746-DE8DB63617E6}")
+    _methods_ = (
+        COMMETHOD([], HRESULT, "EnumAudioEndpoints",
+                  (["in"], c_int, "dataFlow"),
+                  (["in"], DWORD, "dwStateMask"),
+                  (["out"], POINTER(POINTER(IUnknown)), "ppDevices")),
+        COMMETHOD([], HRESULT, "GetDefaultAudioEndpoint",
+                  (["in"], c_int, "dataFlow"),
+                  (["in"], c_int, "role"),
+                  (["out"], POINTER(POINTER(IMMDevice)), "ppEndpoint")),
+        COMMETHOD([], HRESULT, "GetDevice",
+                  (["in"], c_wchar_p, "pwstrId"),
+                  (["out"], POINTER(POINTER(IMMDevice)), "ppDevice")),
+    )
+
+class IAudioClient(IUnknown):
+    _iid_ = GUID("{1cb9ad4c-dbfa-4c32-b178-c2f568a703b2}")
+    _methods_ = (
+        COMMETHOD([], HRESULT, "Initialize",
+                  (["in"], DWORD, "ShareMode"),
+                  (["in"], DWORD, "StreamFlags"),
+                  (["in"], REFERENCE_TIME, "hnsBufferDuration"),
+                  (["in"], REFERENCE_TIME, "hnsPeriodicity"),
+                  (["in"], POINTER(WAVEFORMATEX), "pFormat"),
+                  (["in"], POINTER(GUID), "AudioSessionGuid")),
+        COMMETHOD([], HRESULT, "GetBufferSize",
+                  (["out"], POINTER(c_uint32), "pNumBufferFrames")),
+        COMMETHOD([], HRESULT, "GetStreamLatency",
+                  (["out"], POINTER(REFERENCE_TIME), "phnsLatency")),
+        COMMETHOD([], HRESULT, "GetCurrentPadding",
+                  (["out"], POINTER(c_uint32), "pNumPaddingFrames")),
+        COMMETHOD([], HRESULT, "IsFormatSupported",
+                  (["in"], DWORD, "ShareMode"),
+                  (["in"], POINTER(WAVEFORMATEX), "pFormat"),
+                  (["out"], POINTER(POINTER(WAVEFORMATEX)), "ppClosestMatch")),
+        COMMETHOD([], HRESULT, "GetMixFormat",
+                  (["out"], POINTER(POINTER(WAVEFORMATEX)), "ppDeviceFormat")),
+        COMMETHOD([], HRESULT, "GetDevicePeriod",
+                  (["out"], POINTER(REFERENCE_TIME), "phnsDefaultDevicePeriod"),
+                  (["out"], POINTER(REFERENCE_TIME), "phnsMinimumDevicePeriod")),
+        COMMETHOD([], HRESULT, "Start"),
+        COMMETHOD([], HRESULT, "Stop"),
+        COMMETHOD([], HRESULT, "Reset"),
+        COMMETHOD([], HRESULT, "SetEventHandle",
+                  (["in"], HANDLE, "eventHandle")),
+        COMMETHOD([], HRESULT, "GetService",
+                  (["in"], POINTER(GUID), "iid"),
+                  (["out"], POINTER(POINTER(IUnknown)), "ppv")),
+    )
+
+class IAudioCaptureClient(IUnknown):
+    _iid_ = GUID("{c8adbd64-e71e-48a0-a4de-185c395cd317}")
+    _methods_ = (
+        COMMETHOD(
+            [],
+            HRESULT,
+            "GetBuffer",
+            (["out"], POINTER(POINTER(c_byte)), "ppData"),
+            (["out"], POINTER(c_uint32), "pNumFramesToRead"),
+            (["out"], POINTER(c_ulong), "pdwFlags"),
+            (["out"], POINTER(c_uint64), "pu64DevicePosition"),
+            (["out"], POINTER(c_uint64), "pu64QPCPosition"),
+        ),
+        COMMETHOD(
+            [],
+            HRESULT,
+            "ReleaseBuffer",
+            (["in"], c_uint32, "NumFramesRead"),
+        ),
+        COMMETHOD(
+            [],
+            HRESULT,
+            "GetNextPacketSize",
+            (["out"], POINTER(c_uint32), "pNumFramesInNextPacket"),
+        ),
+    )
+
+CLSID_MMDeviceEnumerator = GUID("{BCDE0395-E52F-467C-8E3D-C4579291692E}")
+
+class WasapiTimerRecorder(object):
+    def __init__(self, filepath, on_success, on_error):
+        self.filepath = filepath
+        self.on_success = on_success
+        self.on_error = on_error
+        self.frames_recorded = []
+        self.running = False
+        self.audio_client = None
+        self.capture_client = None
+        self.device = None
+        self.enumerator = None
+
+    def start(self):
+        try:
+            self.enumerator = CreateObject(CLSID_MMDeviceEnumerator, interface=IMMDeviceEnumerator)
+            self.device = self.enumerator.GetDefaultAudioEndpoint(1, 0)
+            if not self.device:
+                raise Exception("No microphone found")
+                
+            CLSCTX_ALL = 23
+            audio_client_ptr = self.device.Activate(IAudioClient._iid_, CLSCTX_ALL, None)
+            self.audio_client = audio_client_ptr.QueryInterface(IAudioClient)
+            
+            mix_format_ptr = self.audio_client.GetMixFormat()
+            mix_format = mix_format_ptr.contents
+            self.sample_rate = mix_format.nSamplesPerSec
+            self.wFormatTag = mix_format.wFormatTag
+            self.wBitsPerSample = mix_format.wBitsPerSample
+            self.nChannels = mix_format.nChannels
+            self.nBlockAlign = mix_format.nBlockAlign
+            
+            hns_buffer_duration = 10000000
+            hr = self.audio_client.Initialize(
+                0,
+                0,
+                hns_buffer_duration,
+                0,
+                mix_format_ptr,
+                None
+            )
+            if hr != 0:
+                raise Exception(f"Failed to initialize audio client: HRESULT {hex(hr)}")
+                
+            capture_client_ptr = self.audio_client.GetService(IAudioCaptureClient._iid_)
+            self.capture_client = capture_client_ptr.QueryInterface(IAudioCaptureClient)
+            
+            self.audio_client.Start()
+            self.frames_recorded = []
+            self.running = True
+            
+            # Start recursive CallLater chain
+            self.trigger_timer()
+            return True
+        except Exception as e:
+            self.cleanup()
+            self.on_error(str(e))
+            return False
+
+    def trigger_timer(self):
+        if self.running:
+            self.poll_audio()
+            wx.CallLater(20, self.trigger_timer)
+
+    def poll_audio(self):
+        if not self.capture_client or not self.running:
+            return
+        try:
+            packet_size = self.capture_client.GetNextPacketSize()
+            while packet_size > 0:
+                p_data, num_frames, flags, dev_pos, qpc_pos = self.capture_client.GetBuffer()
+                if num_frames > 0:
+                    data_size = num_frames * self.nBlockAlign
+                    buffer_data = ctypes.string_at(p_data, data_size)
+                    self.frames_recorded.append(buffer_data)
+                    self.capture_client.ReleaseBuffer(num_frames)
+                packet_size = self.capture_client.GetNextPacketSize()
+        except Exception as e:
+            self.running = False
+            self.cleanup()
+            self.on_error(f"Capture error: {str(e)}")
+
+    def stop(self):
+        self.running = False
+        if self.audio_client:
+            try:
+                self.audio_client.Stop()
+            except Exception:
+                pass
+                
+        raw_data = b"".join(self.frames_recorded)
+        if not raw_data:
+            self.cleanup()
+            self.on_error("No audio data captured")
+            return
+
+        sample_rate = self.sample_rate
+        wFormatTag = self.wFormatTag
+        wBitsPerSample = self.wBitsPerSample
+        nChannels = self.nChannels
+        
+        self.cleanup()
+        
+        def save_thread():
+            try:
+                with wave.open(self.filepath, 'wb') as wf:
+                    wf.setnchannels(1)
+                    wf.setsampwidth(2)
+                    wf.setframerate(sample_rate)
+                    
+                    is_float = False
+                    if wFormatTag == 3:
+                        is_float = True
+                    elif wFormatTag == 65534:
+                        if wBitsPerSample == 32:
+                            is_float = True
+                            
+                    if is_float:
+                        num_samples = len(raw_data) // 4
+                        floats = struct.unpack(f"<{num_samples}f", raw_data)
+                        converted = []
+                        for i in range(0, len(floats), nChannels):
+                            ch_sum = sum(floats[i:i+nChannels]) / nChannels
+                            val = int(max(-32768, min(32767, ch_sum * 32767)))
+                            converted.append(val)
+                        wf.writeframes(struct.pack(f"<{len(converted)}h", *converted))
+                    else:
+                        if nChannels == 1:
+                            wf.writeframes(raw_data)
+                        else:
+                            num_samples = len(raw_data) // 2
+                            shorts = struct.unpack(f"<{num_samples}h", raw_data)
+                            converted = []
+                            for i in range(0, len(shorts), nChannels):
+                                ch_sum = sum(shorts[i:i+nChannels]) // nChannels
+                                converted.append(ch_sum)
+                            wf.writeframes(struct.pack(f"<{len(converted)}h", *converted))
+                wx.CallAfter(self.on_success)
+            except Exception as e:
+                wx.CallAfter(self.on_error, str(e))
+                
+        t = threading.Thread(target=save_thread)
+        t.daemon = True
+        t.start()
+
+    def cleanup(self):
+        self.capture_client = None
+        self.audio_client = None
+        self.device = None
+        self.enumerator = None
 # Fix compatibility with the new role constants introduced in NVDA 2022.1."""
 try:
     from controlTypes import Role
@@ -152,6 +417,7 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
                 self.line = len(note_lines) - 1 if len(note_lines) > 0 else 0
         self.is_recording = False
         self.temp_voice_path = ""
+        self.recorder = None
     
     def save_state(self):
         save_notes_to_disk(self.memory, self.index, self.line)
@@ -159,7 +425,8 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
     def terminate(self):
         super(GlobalPlugin, self).terminate()
         self._send_mci("close playsound")
-        self._send_mci("close recsound")
+        if self.is_recording and self.recorder:
+            self.recorder.stop()
 
     def _send_mci(self, command):
         buf = ctypes.create_unicode_buffer(1024)
@@ -183,6 +450,28 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
         else:
             ui.message(f"{self.index+1} {note}")
 
+    def _on_recording_success(self):
+        self.is_recording = False
+        self.recorder = None
+        if os.path.exists(self.temp_voice_path) and os.path.getsize(self.temp_voice_path) > 0:
+            filename = os.path.basename(self.temp_voice_path)
+            self.memory.append(f"[Audio] {filename}")
+            self.index = len(self.memory) - 1
+            self.line = 0
+            self.save_state()
+            self._announce_note_at_index()
+        else:
+            tones.beep(180, 220)
+            ui.message(_("Failed to save voice note"))
+
+    def _on_recording_error(self, error_msg):
+        self.is_recording = False
+        self.recorder = None
+        tones.beep(180, 220)
+        import logHandler
+        logHandler.log.error(f"Voice note recording failed: {error_msg}")
+        ui.message(f"Error: {error_msg}")
+
     @script(
         description=_("Record a voice note")
     )
@@ -204,36 +493,20 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
             filename = f"voice_note_{now_str}.wav"
             self.temp_voice_path = os.path.join(voice_dir, filename)
             
-            self._send_mci("open new type waveaudio alias recsound")
-            self._send_mci("set recsound time format ms")
-            self._send_mci("set recsound bitspersample 16")
-            self._send_mci("set recsound samplespersec 44100")
-            self._send_mci("set recsound channels 1")
-            self._send_mci("set recsound alignment 2")
-            self._send_mci("set recsound bytespersec 88200")
-            self._send_mci("record recsound")
-            self.is_recording = True
-
-            ui.message(_("Recording voice note"))
+            self.recorder = WasapiTimerRecorder(
+                self.temp_voice_path,
+                on_success=self._on_recording_success,
+                on_error=self._on_recording_error
+            )
+            if self.recorder.start():
+                self.is_recording = True
+                ui.message(_("Recording voice note"))
         else:
             # Stop recording
-            self.is_recording = False
             tones.beep(880, 50)
             tones.beep(550, 50)
-            
-            self._send_mci("stop recsound")
-            self._send_mci(f'save recsound "{self.temp_voice_path}"')
-            self._send_mci("close recsound")
-            
-            if os.path.exists(self.temp_voice_path) and os.path.getsize(self.temp_voice_path) > 0:
-                filename = os.path.basename(self.temp_voice_path)
-                self.memory.append(f"[Audio] {filename}")
-                self.index = len(self.memory) - 1
-                self.line = 0
-                self.save_state()
-                self._announce_note_at_index()
-            else:
-                ui.message(_("Failed to save voice note"))
+            if self.recorder:
+                self.recorder.stop()
 
     @script(
         description=_("Pause or resume the current voice note")

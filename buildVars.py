@@ -54,7 +54,7 @@ After using a shortcut, a specific sound will play to indicate the action perfor
 
 """),
         # version
-        "addon_version" : "1.4.0",
+        "addon_version" : "1.5.0",
         # Author(s)
         "addon_author" : _("Juliano Lopes"),
         # URL for the add-on documentation support
