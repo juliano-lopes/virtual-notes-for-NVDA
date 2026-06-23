@@ -1,0 +1,248 @@
+# Russian translation for virtualNotesForNVDA.
+# This file is distributed under the same license as the virtualNotesForNVDA package.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: virtualNotesForNVDA 1.4.0\n"
+"Report-Msgid-Bugs-To: nvda-translations@groups.io\n"
+"POT-Creation-Date: 2024-05-10 19:08-0300\n"
+"PO-Revision-Date: 2026-06-23 12:50+0300\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: ru\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<12 || n%100>14) ? 1 : 2);\n"
+"X-Generator: Poedit 3.9\n"
+
+#: addon/globalPlugins/virtualNotesForNVDA/__init__.py:29
+msgid "Virtual Notes For NVDA"
+msgstr "Виртуальные заметки для NVDA"
+
+#: addon/globalPlugins/virtualNotesForNVDA/__init__.py:35
+msgid "Add a new note to memory (opens dialog if no text is selected)"
+msgstr "Добавить новую заметку в память (открывает диалог, если текст не выделен)"
+
+#. Translators: this message is shown when no text is selected
+#: addon/globalPlugins/virtualNotesForNVDA/__init__.py:56
+#: addon/globalPlugins/virtualNotesForNVDA/__init__.py:128
+msgid "No text selected"
+msgstr "Текст не выделен"
+
+#: addon/globalPlugins/virtualNotesForNVDA/__init__.py:59
+msgid "Go to the next note"
+msgstr "Перейти к следующей заметке"
+
+#: addon/globalPlugins/virtualNotesForNVDA/__init__.py:72
+msgid "Go to the previous note"
+msgstr "Перейти к предыдущей заметке"
+
+#: addon/globalPlugins/virtualNotesForNVDA/__init__.py:86
+msgid "Anounce the current note"
+msgstr "Прочитать текущую заметку"
+
+#: addon/globalPlugins/virtualNotesForNVDA/__init__.py:95
+msgid "Delete the note in the current position"
+msgstr "Удалить заметку в текущей позиции"
+
+#: addon/globalPlugins/virtualNotesForNVDA/__init__.py:110
+msgid "Replace the note in the current position (you need to select some text first)"
+msgstr "Заменить заметку в текущей позиции (сначала нужно выделить текст)"
+
+#: addon/globalPlugins/virtualNotesForNVDA/__init__.py:131
+msgid "Move to the next line of the current note"
+msgstr "Перейти к следующей строке текущей заметки"
+
+#: addon/globalPlugins/virtualNotesForNVDA/__init__.py:146
+msgid "Move to the previous line of the current note"
+msgstr "Перейти к предыдущей строке текущей заметки"
+
+#: addon/globalPlugins/virtualNotesForNVDA/__init__.py:161
+msgid "Anounce the current line of the current note"
+msgstr "Прочитать текущую строку текущей заметки"
+
+#: addon/globalPlugins/virtualNotesForNVDA/__init__.py:174
+msgid "Paste the current note to the current application"
+msgstr "Вставить текущую заметку в текущее приложение"
+
+#: addon/globalPlugins/virtualNotesForNVDA/__init__.py:185
+msgid "Paste the current line in the note to the current application"
+msgstr "Вставить текущую строку заметки в текущее приложение"
+
+#. Add-on summary, usually the user visible name of the addon.
+#. Translators: Summary for this add-on to be shown on installation and add-on information.
+#: buildVars.py:17
+msgid "Virtual Notes For NVDA (creates virtual notes to be read by NVDA)"
+msgstr "Виртуальные заметки для NVDA (создаёт виртуальные заметки для чтения с помощью NVDA)"
+
+#. Add-on description
+#. Translators: Long description to be shown for this add-on on add-on information from add-ons manager
+#: buildVars.py:20
+msgid ""
+"\n"
+"This add-on (Virtual Notes for NVDA) creates virtual notes that can be read by NVDA screen reader. Notes are persistent and saved automatically to disk.\n"
+"\n"
+"For more information, tutorials, and updates, visit:\n"
+"* Official Website: https://julianolopes.com.br/complemento-notas-virtuais-para-o-nvda\n"
+"* Demonstration Video on YouTube: https://www.youtube.com/watch?v=yKJqS4imKHg\n"
+"\n"
+"Here are the available shortcuts:  \n"
+"* NVDA + Alt + A: Add selected text to memory as a new note. If no text is selected, it opens a dialog for manual entry, where you can use buttons to:\n"
+"  * Create a new note.\n"
+"  * Replace the current note.\n"
+"  * Add the typed text to the beginning of the current note.\n"
+"  * Insert the typed text right after the current line of the active note.\n"
+"  * Add the typed text to the end of the current note.\n"
+"  * Rename a voice note (if the active note is an audio note).\n"
+"* NVDA + Alt + V: Add a new note directly from the clipboard.\n"
+"* NVDA + Shift + Alt + A: Insert selected text as a new line right after the current line in the active note.\n"
+"* NVDA + Alt + J: Go to the previous note.\n"
+"* NVDA + Alt + L: Go to the next note.\n"
+"* NVDA + Alt + U: Announce/play the current note.\n"
+"* NVDA + CONTROL + SHIFT + U: Paste the current note to the current application.\n"
+"* NVDA + Alt + S: Replace the note in the current position (you need to select some text first).\n"
+"* NVDA + Alt + D: Delete the note in the current position.\n"
+"* NVDA + Alt + G: Record a voice note (16-bit 44.1 kHz Mono). Press again to stop recording.\n"
+"* NVDA + Shift + Alt + U: Pause or resume recording or playback of the current voice note.\n"
+"\n"
+"If the current note contains multiple lines (like text copied from a text editor), you can use these shortcuts:  \n"
+"* NVDA + Alt + I: Move to the previous line of the current note.\n"
+"* NVDA + Alt + K: Move to the next line of the current note.\n"
+"* NVDA + Alt + O: Announce the current line of the current note.\n"
+"* NVDA + CONTROL + SHIFT + O: Paste the current line in the note to the current application.\n"
+"\n"
+"Note: The key positions mimic the arrow keys (I = up, L = right, K = down, and J = left).  \n"
+"After using a shortcut, a specific sound will play to indicate the action performed.\n"
+"\n"
+msgstr ""
+"\n"
+"Это дополнение (Virtual Notes for NVDA) создаёт виртуальные заметки, которые может читать экранный диктор NVDA. Заметки сохраняются между сеансами и автоматически записываются на диск.\n"
+"\n"
+"Дополнительная информация, руководства и обновления:\n"
+"* Официальный сайт: https://julianolopes.com.br/complemento-notas-virtuais-para-o-nvda\n"
+"* Демонстрационное видео на YouTube: https://www.youtube.com/watch?v=yKJqS4imKHg\n"
+"\n"
+"Доступные сочетания клавиш:  \n"
+"* NVDA + Alt + A: добавить выделенный текст в память как новую заметку. Если текст не выделен, открывается диалог для ручного ввода, где можно использовать кнопки, чтобы:\n"
+"  * Создать новую заметку.\n"
+"  * Заменить текущую заметку.\n"
+"  * Добавить введённый текст в начало текущей заметки.\n"
+"  * Вставить введённый текст сразу после текущей строки активной заметки.\n"
+"  * Добавить введённый текст в конец текущей заметки.\n"
+"  * Переименовать голосовую заметку (если активная заметка является аудиозаметкой).\n"
+"* NVDA + Alt + V: добавить новую заметку напрямую из буфера обмена.\n"
+"* NVDA + Shift + Alt + A: вставить выделенный текст как новую строку сразу после текущей строки активной заметки.\n"
+"* NVDA + Alt + J: перейти к предыдущей заметке.\n"
+"* NVDA + Alt + L: перейти к следующей заметке.\n"
+"* NVDA + Alt + U: прочитать или воспроизвести текущую заметку.\n"
+"* NVDA + CONTROL + SHIFT + U: вставить текущую заметку в текущее приложение.\n"
+"* NVDA + Alt + S: заменить заметку в текущей позиции (сначала нужно выделить текст).\n"
+"* NVDA + Alt + D: удалить заметку в текущей позиции.\n"
+"* NVDA + Alt + G: записать голосовую заметку (16 бит, 44,1 кГц, моно). Нажмите ещё раз, чтобы остановить запись.\n"
+"* NVDA + Shift + Alt + U: приостановить или возобновить запись либо воспроизведение текущей голосовой заметки.\n"
+"\n"
+"Если текущая заметка содержит несколько строк (например, текст скопирован из текстового редактора), можно использовать эти сочетания клавиш:  \n"
+"* NVDA + Alt + I: перейти к предыдущей строке текущей заметки.\n"
+"* NVDA + Alt + K: перейти к следующей строке текущей заметки.\n"
+"* NVDA + Alt + O: прочитать текущую строку текущей заметки.\n"
+"* NVDA + CONTROL + SHIFT + O: вставить текущую строку заметки в текущее приложение.\n"
+"\n"
+"Примечание: расположение клавиш имитирует клавиши-стрелки (I = вверх, L = вправо, K = вниз, J = влево).  \n"
+"После использования сочетания клавиш будет воспроизведён специальный звук, указывающий на выполненное действие.\n"
+"\n"
+
+#. Author(s)
+#: buildVars.py:43
+msgid "Juliano Lopes"
+msgstr "Juliano Lopes"
+
+msgid "Add Note"
+msgstr "Добавить заметку"
+
+msgid "Write your note:"
+msgstr "Введите заметку:"
+
+msgid "Empty note discarded"
+msgstr "Пустая заметка отброшена"
+
+msgid "Note addition canceled"
+msgstr "Добавление заметки отменено"
+
+msgid "Clipboard is empty or does not contain text"
+msgstr "Буфер обмена пуст или не содержит текст"
+
+msgid "No active note to insert into"
+msgstr "Нет активной заметки для вставки"
+
+msgid "Create new note"
+msgstr "Создать новую заметку"
+
+msgid "Add to beginning of current note"
+msgstr "Добавить в начало текущей заметки"
+
+msgid "Add after current line"
+msgstr "Добавить после текущей строки"
+
+msgid "Add to end of current note"
+msgstr "Добавить в конец текущей заметки"
+
+msgid "Replace current note"
+msgstr "Заменить текущую заметку"
+
+msgid "Cancel"
+msgstr "Отмена"
+
+msgid "Voice note"
+msgstr "Голосовая заметка"
+
+msgid "Recording voice note"
+msgstr "Запись голосовой заметки"
+
+msgid "Failed to save voice note"
+msgstr "Не удалось сохранить голосовую заметку"
+
+msgid "Cannot perform this action on a voice note"
+msgstr "Невозможно выполнить это действие с голосовой заметкой"
+
+msgid "Audio file not found"
+msgstr "Аудиофайл не найден"
+
+msgid "Record a voice note"
+msgstr "Записать голосовую заметку"
+
+msgid "Rename voice note"
+msgstr "Переименовать голосовую заметку"
+
+msgid "Paused"
+msgstr "Приостановлено"
+
+msgid "Resumed"
+msgstr "Возобновлено"
+
+msgid "Invalid name"
+msgstr "Недопустимое имя"
+
+msgid "Cannot perform this action on a text note"
+msgstr "Невозможно выполнить это действие с текстовой заметкой"
+
+msgid "Pause or resume the current voice note"
+msgstr "Приостановить или возобновить текущую голосовую заметку"
+
+msgid "Add a new note from clipboard"
+msgstr "Добавить новую заметку из буфера обмена"
+
+msgid "Insert selected text after the current line of the active note"
+msgstr "Вставить выделенный текст после текущей строки активной заметки"
+
+msgid "Rename current voice note"
+msgstr "Переименовать текущую голосовую заметку"
+
+msgid "Save changes to current note"
+msgstr "Сохранить изменения в текущей заметке"
+
+msgid "Move the current note one position to the left"
+msgstr "Переместить текущую заметку на одну позицию влево"
+
+msgid "Move the current note one position to the right"
+msgstr "Переместить текущую заметку на одну позицию вправо"
