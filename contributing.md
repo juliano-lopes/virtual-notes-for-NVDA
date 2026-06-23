@@ -16,7 +16,7 @@ Once you have everything installed, issuing scons at the root of the project sho
 
 ### translating the addon
 
-Assuming you have everything set up to build the addom (see previous topic) issuing scons pot should generate a pot file at the root project directory. It is them possible to generate and contribute the .po files for your language.
+Assuming you have everything set up to build the addon (see previous topic) issuing scons pot should generate a pot file at the root project directory. It is them possible to generate and contribute the .po files for your language.
 Current languages can be found at /addon/locale directory
 
 ### translating documentation
